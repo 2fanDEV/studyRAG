@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+    mongo:
+        ports:
+            - '27018:27017'
+        container_name: mongo_db
+        restart: always
+        logging:
+            options:
+                max-size: 1g
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=ragfan
+            - MONGO_INITDB_ROOT_PASSWORD=placeholder123
+        image: mongo
