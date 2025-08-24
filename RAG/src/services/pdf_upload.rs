@@ -1,4 +1,7 @@
-use actix_web::HttpResponse;
+use actix_web::{
+    web::{Json, JsonBody},
+    HttpResponse,
+};
 use bson::{doc, Document};
 use mongodb::{options::UpdateModifications, Collection, Database};
 
@@ -27,7 +30,7 @@ impl PdfService {
     pub async fn update_pdf(&self, pdf: Pdf) -> HttpResponse {
         let document = match self
             .collection
-            .find_one(pdf.id.into_document().unwrap())
+            .find_one(pdf.id.clone().into_document().unwrap())
             .await
         {
             Ok(pdf) => match pdf {
@@ -36,7 +39,17 @@ impl PdfService {
             },
             Err(_) => return HttpResponse::InternalServerError().finish(),
         };
-        HttpResponse::Ok().finish()
+
+        let update_one = self
+            .collection
+            .update_one(
+                document,
+                UpdateModifications::Document(pdf.into_document().unwrap()),
+            )
+            .await
+            .unwrap();
+
+        HttpResponse::Ok().json(update_one)
     }
 
     pub fn retrieve_pdf(&self, id: Id) {}

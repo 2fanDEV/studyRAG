@@ -1,6 +1,10 @@
 use std::{ops::Deref, sync::Arc};
 
-use actix_web::{main, post, web::{self, Data, Json}, App, HttpResponse, HttpServer};
+use actix_web::{
+    main, post,
+    web::{self, Data, Json},
+    App, HttpResponse, HttpServer,
+};
 use serde::Serialize;
 use RAG::{database::mongodb::MongoClient, model::pdf::Pdf, services::pdf_upload::PdfService};
 
@@ -18,7 +22,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         let mongo_client = Arc::new(MongoClient::new().unwrap());
         App::new()
-            .app_data(PdfService::new(mongo_client.database("pdfService").collection("pdf")))
+            .app_data(PdfService::new(
+                mongo_client.database("pdfService").collection("pdf"),
+            ))
             .service(pdf_upload)
     })
     .bind(("127.0.0.1", 8080))?

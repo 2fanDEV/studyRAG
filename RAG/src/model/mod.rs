@@ -11,4 +11,6 @@ pub trait IntoDocument {
     {
         bson::to_bson(&self).unwrap().as_document().cloned()
     }
+
+
 }
