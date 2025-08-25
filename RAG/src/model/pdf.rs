@@ -11,11 +11,11 @@ pub struct PDFType {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Pdf {
     pub id: Id,
-    file_name: String,
-    page_length: u32,
-    length: u32,
-    blob: Vec<u8>,
-    ty: PDFType,
+    pub file_name: String,
+    pub page_length: u32,
+    pub length: u32,
+    pub blob: Vec<u8>,
+    pub ty: PDFType,
 }
 
 impl IntoDocument for Pdf {}

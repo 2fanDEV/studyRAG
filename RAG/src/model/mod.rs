@@ -3,6 +3,7 @@ use serde::Serialize;
 
 pub mod pdf;
 pub mod values;
+pub mod bert_actors;
 
 pub trait IntoDocument {
     fn into_document(self) -> Option<Document>

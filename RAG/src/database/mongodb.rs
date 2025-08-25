@@ -4,6 +4,7 @@ use std::{
     u16,
 };
 
+use log::debug;
 use mongodb::{
     options::{ClientOptions, Credential, ServerAddress},
     Client,
@@ -24,7 +25,6 @@ impl Deref for MongoClient {
 impl MongoClient {
     pub fn new() -> Result<MongoClient> {
         let host = dotenv::var("HOST").unwrap();
-
         let username = dotenv::var("USERNAME").unwrap();
         let password = dotenv::var("PASSWORD").unwrap();
 

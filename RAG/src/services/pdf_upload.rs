@@ -1,19 +1,29 @@
+
+use actix::{dev::MessageResponse, Actor, Addr, SyncContext};
 use actix_web::{
-    web::{Json, JsonBody},
     HttpResponse,
 };
-use bson::{doc, Document};
-use mongodb::{options::UpdateModifications, Collection, Database};
+use log::debug;
+use lopdf::Document;
+use mongodb::{options::UpdateModifications, Collection};
+use rust_bert::
+    pipelines::keywords_extraction::KeywordExtractionModel
+;
 
-use crate::model::{pdf::Pdf, values::Id, IntoDocument};
+use crate::model::{bert_actors::{ActorTest, ExtractionText}, pdf::Pdf, values::Id, IntoDocument};
+
 
 pub struct PdfService {
     pub collection: Collection<Pdf>,
+    pub keywords_extractor: Addr<ActorTest>
 }
 
 impl PdfService {
-    pub fn new(collection: Collection<Pdf>) -> PdfService {
-        PdfService { collection }
+    pub fn new(collection: Collection<Pdf>, keywords_extractor: Addr<ActorTest>) -> PdfService {
+        PdfService {
+            collection,
+            keywords_extractor
+        }
     }
 
     pub async fn store_pdf(&self, pdf: Pdf) -> HttpResponse {
@@ -23,7 +33,12 @@ impl PdfService {
                 return HttpResponse::InternalServerError().finish();
             }
         };
-        self.collection.insert_one(pdf).await.unwrap();
+        let pdf_doc= Document::load_mem(&pdf.blob).unwrap();
+        let collect =pdf_doc.get_pages().into_iter().map(|entry| entry.0).collect::<Vec<u32>>();
+        println!("collect");
+        let send = self.keywords_extractor.send(ExtractionText(pdf_doc.extract_text(&[1]).unwrap())).await.unwrap();
+        debug!("{:?}", send);
+        //self.collection.insert_one(pdf).await.unwrap();
         HttpResponse::Ok().finish()
     }
 
