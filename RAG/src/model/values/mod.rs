@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::IntoDocument;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Id(String);
 
 impl Deref for Id {

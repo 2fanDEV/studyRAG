@@ -1,6 +1,10 @@
-
-interface Pdf {
+export interface PdfDocument {
+	id: String | undefined,
 	file_name: String
+	page_length: number,
+	length: number,
+	blob: Number[],
+	ty: String,
 }
 
 function PdfIcon() {
@@ -12,7 +16,7 @@ function PdfIcon() {
 }
 
 
-export default function Pdf() {
+export default function Pdf(p0: { id: undefined; file_name: string; page_length: number; length: number; blob: Int8Array<ArrayBufferLike>; ty: string }) {
 	return (
 		<div className="relative">
 				<PdfIcon></PdfIcon>

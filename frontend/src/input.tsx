@@ -1,4 +1,12 @@
 import { useState } from "react";
+import type { PdfDocument } from "./Pdf";
+
+type UploadedFile = {
+	name: string;
+	type: string;
+	size: number;
+	buffer: Uint8Array;
+}
 
 export default function FileInput() {
   const [files, setFiles] = useState<File[]>([]);
@@ -7,9 +15,31 @@ export default function FileInput() {
     const files = event.target.files;
     console.log(files);
     if (files) {
-      setFiles(Array.from(files));
+      setFiles(Array.from(files)); 
     }
   };
+
+  let handleUpload = async () => {
+	console.log(files);
+		for (const file of files) {
+			const pdf: PdfDocument = {
+				id: "123",
+				file_name: file.name,
+				page_length: 0,
+				length: file.size,
+				blob: await file.arrayBuffer().then(buffer => Array.from(new Uint8Array(buffer))),
+				ty: file.type
+			};
+			console.log(pdf);
+			fetch("http://localhost:8080/pdf/upload", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(pdf)
+			})
+		}
+  }
 
   let fileList = (files.map((file, index) => {
     return (
@@ -35,6 +65,7 @@ export default function FileInput() {
 				<ul>{fileList}</ul>
 			</div>
 		)}
+		<button onClick={() => handleUpload()}> Upload all selected files</button>
       </div>
     </div>
   );
