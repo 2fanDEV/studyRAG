@@ -1,25 +1,26 @@
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
-use actix_web::{web::Json, HttpResponse};
+use actix_web::HttpResponse;
 use mongodb::Collection;
 
-use crate::embeddables::Embeddable;
+use crate::{database::qdrant::MQdrantClient, embeddables::Embeddable};
 
 
 pub trait EmbeddableMarker: Embeddable + Debug {}
 
-#[derive(Debug)]
 pub struct EmbeddableService {
+    qdrant: Arc<MQdrantClient>,
     collection: Collection<Box<dyn EmbeddableMarker>>,
 }
 
 impl EmbeddableService {
-   pub fn new(collection: Collection<Box<dyn EmbeddableMarker>>) -> Self {
+   pub fn new(collection: Collection<Box<dyn EmbeddableMarker>>, qdrant: Arc<MQdrantClient>) -> Self {
       Self {
-          collection
+          collection,
+          qdrant
       }
-   } 
+   }
 
    pub fn upload(&self, embeddable: Box<dyn Embeddable>) -> HttpResponse {
         HttpResponse::Ok().finish()
