@@ -1,11 +1,11 @@
-use actix::{Actor, Context, Handler, Message};
+use actix::{Actor, Context, Handler, Message, SyncContext};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 
 use crate::model::{
     EmbeddingMessagesRequest, EmbeddingModel, ExtractionMessageRequest, ExtractionModel,
 };
 
-mod bert_models;
+pub mod bert_models;
 
 pub struct EmbeddingActor {
     model: Box<dyn EmbeddingModel>,
@@ -18,16 +18,33 @@ impl Handler<EmbeddingMessagesRequest> for EmbeddingActor {
     }
 }
 
+
+impl EmbeddingActor {
+    pub fn new(model: Box<dyn EmbeddingModel>) -> Self {
+        Self {
+            model
+        } 
+    }
+}
+
 impl Actor for EmbeddingActor {
-    type Context = Context<Self>;
+    type Context = SyncContext<Self>;
 }
 
 pub struct ExtractionActor {
     model: Box<dyn ExtractionModel>,
 }
 
+impl ExtractionActor {
+    pub fn new(model: Box<dyn ExtractionModel>) -> Self {
+        Self {
+            model
+        } 
+    }
+}
+
 impl Actor for ExtractionActor {
-    type Context = Context<Self>;
+    type Context = SyncContext<Self>;
 }
 
 impl Handler<ExtractionMessageRequest> for ExtractionActor {

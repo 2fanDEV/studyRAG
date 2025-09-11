@@ -39,7 +39,7 @@ impl Embeddable for Media {
         EmbeddableType::MediaType(self.ty)
     }
 
-    fn path(&mut self) -> &str {
+    fn path(&self) -> &str {
         self.path.to_str().unwrap()
     }
 

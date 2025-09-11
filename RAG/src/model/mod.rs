@@ -1,13 +1,16 @@
 use std::marker::PhantomData;
 
-use actix::{dev::MessageResponse, Actor, Context, Handler, Message};
-use rust_bert::pipelines::keywords_extraction::{Keyword, KeywordExtractionModel};
+use actix::Message;
+use rust_bert::pipelines::keywords_extraction::Keyword;
 
 pub mod bert_actors;
 
 pub trait ResultMarker {}
 
-pub struct BertRequest<ResType> where ResType: ResultMarker {
+pub struct BertRequest<ResType>
+where
+    ResType: ResultMarker,
+{
     full_text: Vec<SingleMessage>,
     _data: PhantomData<ResType>,
 }
@@ -45,8 +48,6 @@ pub trait ExtractionModel {
     fn process(&self, msg: ExtractionMessageRequest) -> Vec<Vec<Keyword>>;
 }
 
-
-
 /*
  * TODO: use ctx_size instead of splitting sentence by sentence
  * or split up sentence into two, if sentence.len > ctx_size
@@ -56,7 +57,9 @@ pub fn split_by_context_size<T>(
     ctx_size: usize,
     words_from_previous_sentence: usize,
 ) -> BertRequest<T>
-where T: ResultMarker{
+where
+    T: ResultMarker,
+{
     let mut container = vec![];
     let sentences = full_text
         .split(".")
@@ -95,7 +98,7 @@ mod tests {
 
     #[cfg(test)]
     mod tests {
-        use crate::model::{split_by_context_size};
+        use crate::model::split_by_context_size;
 
         #[test]
         fn split_by_context_size_test() {
@@ -109,8 +112,7 @@ mod tests {
             ];
 
             let splitted_sentences =
-                split_by_context_size::<Vec<Vec<f32>>>(full_text.to_string(), 30, 10)
-                    .full_text;
+                split_by_context_size::<Vec<Vec<f32>>>(full_text.to_string(), 30, 10).full_text;
             for (index, sentence) in splitted_sentences.into_iter().enumerate() {
                 let expected_result = expected_results[index];
                 assert_eq!(sentence.text, expected_result.0);

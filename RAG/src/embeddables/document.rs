@@ -23,6 +23,8 @@ pub struct Document {
     tags: Vec<Vec<Keyword>>,
 }
 
+
+
 impl Embeddable for Document {
     fn name(&self) -> &str {
         &self.name
@@ -36,7 +38,7 @@ impl Embeddable for Document {
         EmbeddableType::DocumentType(self.ty)
     }
 
-    fn path(&mut self) -> &str {
+    fn path(&self) -> &str {
         self.path.to_str().unwrap()
     }
 

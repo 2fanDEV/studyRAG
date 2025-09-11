@@ -4,7 +4,10 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::{embeddables::{document::Document, Embeddable}, services::embeddable::EmbeddableService};
+use crate::{
+    embeddables::Embeddable,
+    services::embeddable::EmbeddableService,
+};
 
 #[post("embeddable/upload")]
 async fn embeddable_upload(

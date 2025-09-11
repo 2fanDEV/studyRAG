@@ -16,7 +16,7 @@ pub trait Embeddable: Send + Sync {
     fn name(&self) -> &str;
     fn id(&self) -> Uuid;
     fn ty(&self) -> EmbeddableType;
-    fn path(&mut self) -> &str;
+    fn path(&self) -> &str;
     fn len(&self) -> u32;
     fn timestamp(&self) -> DateTime;
     fn tags(&self) -> Vec<Vec<Keyword>>;
