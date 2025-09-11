@@ -1,4 +1,4 @@
-use actix::{Actor, Context, Handler, Message, SyncContext};
+use actix::{Actor, Handler, SyncContext};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 
 use crate::model::{

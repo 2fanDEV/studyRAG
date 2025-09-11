@@ -1,10 +1,8 @@
 use std::{
-    io::{self, Result},
+    io::Result,
     ops::Deref,
-    u16,
 };
 
-use log::debug;
 use mongodb::{
     options::{ClientOptions, Credential, ServerAddress},
     Client,

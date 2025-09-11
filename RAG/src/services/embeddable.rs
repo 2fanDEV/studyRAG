@@ -45,6 +45,13 @@ impl EmbeddableService {
         let ty = embeddable.ty();
         let path = embeddable.path();
 
+        match path {
+            crate::embeddables::LocationPath::Link(url) => todo!(),
+            crate::embeddables::LocationPath::File(path_buf) => todo!(),
+        }
+
+
+
         HttpResponse::Ok().finish()
     }
 }

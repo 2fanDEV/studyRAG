@@ -1,10 +1,8 @@
-use std::path::PathBuf;
-
 use bson::Uuid;
 use rust_bert::pipelines::keywords_extraction::Keyword;
 use serde::{Deserialize, Serialize};
 
-use crate::embeddables::{Embeddable, EmbeddableType};
+use crate::embeddables::{Embeddable, EmbeddableType, LocationPath};
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
 pub enum DocumentType {
@@ -17,13 +15,11 @@ pub struct Document {
     identifier: Uuid,
     name: String,
     ty: DocumentType,
-    path: PathBuf,
+    path: LocationPath,
     length: u32,
     timestamp: i64,
     tags: Vec<Vec<Keyword>>,
 }
-
-
 
 impl Embeddable for Document {
     fn name(&self) -> &str {
@@ -38,8 +34,8 @@ impl Embeddable for Document {
         EmbeddableType::DocumentType(self.ty)
     }
 
-    fn path(&self) -> &str {
-        self.path.to_str().unwrap()
+    fn path(&self) -> LocationPath {
+        self.path.clone()
     }
 
     fn len(&self) -> u32 {
@@ -55,7 +51,7 @@ impl Embeddable for Document {
     }
 
     #[doc(hidden)]
-    fn typetag_name(&self) ->  &'static str {
+    fn typetag_name(&self) -> &'static str {
         "Document"
     }
 
@@ -63,5 +59,4 @@ impl Embeddable for Document {
     fn typetag_deserialize(&self) {
         "Document";
     }
-
 }

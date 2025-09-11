@@ -33,14 +33,15 @@ impl MQdrantClient {
         let collection = match self
             .qdrant
             .create_collection(
-                CreateCollectionBuilder::new(collection_name)
+                CreateCollectionBuilder::new(collection_name.clone())
                     .vectors_config(VectorsConfigBuilder::default()),
             )
-            .await {
-                Ok(res) => res,
-                Err(err) => return Err(err.into()), 
-            };
+            .await
+        {
+            Ok(res) => res,
+            Err(err) => return Err(err.into()),
+        };
+        self.all_collections.push(collection_name);
         Ok(())
-        
     }
 }

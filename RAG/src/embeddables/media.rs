@@ -1,10 +1,8 @@
-use std::path::PathBuf;
-
 use bson::{DateTime, Uuid};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 use serde::{Deserialize, Serialize};
 
-use crate::embeddables::{Embeddable, EmbeddableType};
+use crate::embeddables::{Embeddable, EmbeddableType, LocationPath};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum MediaType {
@@ -20,7 +18,7 @@ pub struct Media {
     identifier: Uuid,
     name: String,
     ty: MediaType,
-    path: PathBuf,
+    path: LocationPath,
     timestamp: i64,
     length: u32,
     tags: Vec<Vec<Keyword>>
@@ -39,8 +37,8 @@ impl Embeddable for Media {
         EmbeddableType::MediaType(self.ty)
     }
 
-    fn path(&self) -> &str {
-        self.path.to_str().unwrap()
+    fn path(&self) -> LocationPath {
+        self.path.clone()
     }
 
     fn len(&self) -> u32 {
