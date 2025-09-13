@@ -12,18 +12,15 @@ pub struct EmbeddingActor {
 }
 
 impl Handler<EmbeddingMessagesRequest> for EmbeddingActor {
-    type Result = Result<Vec<Vec<f32>>, std::io::Error>;
+    type Result = Vec<Vec<f32>>;
     fn handle(&mut self, msg: EmbeddingMessagesRequest, ctx: &mut Self::Context) -> Self::Result {
-        Ok(self.model.process(msg))
+        self.model.process(msg)
     }
 }
 
-
 impl EmbeddingActor {
     pub fn new(model: Box<dyn EmbeddingModel>) -> Self {
-        Self {
-            model
-        } 
+        Self { model }
     }
 }
 
@@ -37,9 +34,7 @@ pub struct ExtractionActor {
 
 impl ExtractionActor {
     pub fn new(model: Box<dyn ExtractionModel>) -> Self {
-        Self {
-            model
-        } 
+        Self { model }
     }
 }
 
@@ -48,9 +43,9 @@ impl Actor for ExtractionActor {
 }
 
 impl Handler<ExtractionMessageRequest> for ExtractionActor {
-    type Result = Result<Vec<Vec<Keyword>>, std::io::Error>;
+    type Result = Vec<Vec<Keyword>>;
 
     fn handle(&mut self, msg: ExtractionMessageRequest, ctx: &mut Self::Context) -> Self::Result {
-        Ok(self.model.process(msg))
+        self.model.process(msg)
     }
 }

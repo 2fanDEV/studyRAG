@@ -17,12 +17,12 @@ where
 
 impl ResultMarker for Vec<Vec<f32>> {}
 impl Message for BertRequest<Vec<Vec<f32>>> {
-    type Result = Result<Vec<Vec<f32>>, std::io::Error>;
+    type Result = Vec<Vec<f32>>;
 }
 
 impl ResultMarker for Vec<Vec<Keyword>> {}
 impl Message for BertRequest<Vec<Vec<Keyword>>> {
-    type Result = Result<Vec<Vec<Keyword>>, std::io::Error>;
+    type Result = Vec<Vec<Keyword>>;
 }
 
 pub type EmbeddingMessagesRequest = BertRequest<Vec<Vec<f32>>>;

@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, fs, sync::Arc};
 
 use actix::{Actor, Addr, SyncArbiter};
 use actix_web::HttpResponse;
@@ -7,9 +7,12 @@ use mongodb::Collection;
 use crate::{
     database::qdrant::MQdrantClient,
     embeddables::{media::MediaType, Embeddable},
-    model::bert_actors::{
-        bert_models::{KeywordExtractionModel, VectorEmbeddingModel},
-        EmbeddingActor, ExtractionActor,
+    model::{
+        bert_actors::{
+            bert_models::{KeywordExtractionModel, VectorEmbeddingModel},
+            EmbeddingActor, ExtractionActor,
+        },
+        split_by_context_size,
     },
 };
 
@@ -33,6 +36,7 @@ impl EmbeddableService {
         let extracting_actor = SyncArbiter::start(1, || {
             ExtractionActor::new(Box::new(KeywordExtractionModel::new().unwrap()))
         });
+
         Self {
             collection,
             qdrant,
@@ -41,17 +45,45 @@ impl EmbeddableService {
         }
     }
 
-    pub fn upload(&self, embeddable: Box<dyn Embeddable>) -> HttpResponse {
-        let ty = embeddable.ty();
-        let path = embeddable.path();
-
-        match path {
-            crate::embeddables::LocationPath::Link(url) => todo!(),
-            crate::embeddables::LocationPath::File(path_buf) => todo!(),
+    pub async fn upload(&self, embeddable: Box<dyn Embeddable>) -> HttpResponse {
+        match embeddable.path() {
+            crate::embeddables::LocationPath::Link(url) => {
+                let url = url;
+            }
+            crate::embeddables::LocationPath::File(path_buf) => {
+                let path = path_buf;
+                match embeddable.ty() {
+                    crate::embeddables::EmbeddableType::MediaType(media_type) => match media_type {
+                        MediaType::MP4 => todo!(),
+                        MediaType::MP3 => todo!(),
+                        MediaType::PNG => todo!(),
+                        MediaType::JPEG => todo!(),
+                        MediaType::RAW => todo!(),
+                    },
+                    crate::embeddables::EmbeddableType::DocumentType(document_type) => {
+                        match document_type {
+                            crate::embeddables::document::DocumentType::PDF => {
+                                let pdf = lopdf::Document::load(path).unwrap();
+                                let pages = pdf
+                                    .get_pages()
+                                    .into_iter()
+                                    .map(|(page_num, page_id)| page_num)
+                                    .collect::<Vec<_>>();
+                                let extract_text = pdf.extract_text(&pages).unwrap();
+                                let send = self
+                                    .keyword_actor
+                                    .send(split_by_context_size(extract_text, 0, 20))
+                                    .await
+                                    .unwrap();
+                            }
+                            crate::embeddables::document::DocumentType::TXT => todo!(),
+                        }
+                    }
+                }
+            }
         }
-
-
-
         HttpResponse::Ok().finish()
     }
+
+    fn calculate_embeddings_from_text(&self) {}
 }

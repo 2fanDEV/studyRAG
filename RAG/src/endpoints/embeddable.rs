@@ -14,5 +14,5 @@ async fn embeddable_upload(
     embeddable: Json<Box<dyn Embeddable>>,
     embeddable_service: Data<EmbeddableService>,
 ) -> HttpResponse {
-    embeddable_service.upload(embeddable.into_inner())
+    embeddable_service.upload(embeddable.into_inner()).await
 }
