@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DndContext, type UniqueIdentifier } from "@dnd-kit/core";
+import { DndContext } from "@dnd-kit/core";
 import PDF from "./components/PDF";
 import FileSelectorButton from "./components/FileSelector";
 import type { DraggableElement } from "./types/app";
@@ -9,7 +9,6 @@ function App() {
     { id: "pdf_1", position: { x: 0, y: 0 } },
     { id: "pdf_2", position: { x: 100, y: 0 } },
   ]);
-  setPositions;
 
   return (
     <div className="w-full h-full absolute bg-[#061319] -z-8">
