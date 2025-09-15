@@ -23,7 +23,7 @@ impl VectorEmbeddingModel {
             rust_bert::pipelines::sentence_embeddings::SentenceEmbeddingsModelType::SentenceT5Base,
         )
         .create_model()?;
-        Ok(Self { model })
+     Ok(Self { model })
     }
 }
 

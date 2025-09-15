@@ -2,14 +2,14 @@ import { useState } from "react";
 import { DndContext } from "@dnd-kit/core";
 import FileSelectorButton from "./components/FileSelector";
 import DraggableElement from "./components/DraggableElement";
-import type { Draggable } from "./types/app";
-import { FileType } from "./types/file";
+import type { Draggable, FileInformation} from "./types/app";
 import getAltOrCmdKey from "./util/os";
 
 function App() {
   const [positions, setPositions] = useState<Draggable[]>([]);
-  const [fileDetails, setFileDetails] = useState<Map<string, string>>(new Map());
-  const handleUpload = (draggable: Draggable) => {
+  const [fileDetails, setFileDetails] = useState<FileInformation[]>([]);
+
+  const handleUpload = (draggable: Draggable, fileInformation: FileInformation) => {
      setPositions((prev) => {
         let alreadyExistsIndex = prev.findIndex((p) => p.id === draggable.id);
         if (alreadyExistsIndex !== -1) {
@@ -25,6 +25,7 @@ function App() {
         }
         return [...prev, draggable];
   })
+    setFileDetails((prev) => [...prev, fileInformation]);
   }
 
   return (
@@ -65,15 +66,13 @@ function App() {
           }}
         >
           {Object.entries(positions).map(([, element]) => {
+            let id = element.id;
+            let fileInfo = fileDetails.find((f) => f.id === id);
+            if (!fileInfo) return null;
             return (
               <DraggableElement
-                fileInformation={{
-                  name: element.id as string,
-                  ty: FileType.PDF,
-                  path: "",
-                  len: 0,
-                }}
                 {...element}
+                {...fileInfo}
               />
             );
           })}

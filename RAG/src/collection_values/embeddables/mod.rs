@@ -1,11 +1,10 @@
 use std::path::PathBuf;
 
-use actix_web::{dev::Url, http::Uri};
 use bson::{DateTime, Uuid};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 use serde::{Deserialize, Serialize};
 
-use crate::embeddables::{document::DocumentType, media::MediaType};
+use crate::collection_values::embeddables::{document::DocumentType, media::MediaType};
 
 pub mod document;
 pub mod media;
@@ -31,6 +30,3 @@ pub trait Embeddable: Send + Sync {
     fn timestamp(&self) -> DateTime;
     fn tags(&self) -> Vec<Vec<Keyword>>;
 }
-
-
-

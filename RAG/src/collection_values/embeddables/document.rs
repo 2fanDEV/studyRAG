@@ -2,7 +2,8 @@ use bson::Uuid;
 use rust_bert::pipelines::keywords_extraction::Keyword;
 use serde::{Deserialize, Serialize};
 
-use crate::embeddables::{Embeddable, EmbeddableType, LocationPath};
+use crate::collection_values::embeddables::{Embeddable, EmbeddableType, LocationPath};
+
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
 pub enum DocumentType {

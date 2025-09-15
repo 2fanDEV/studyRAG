@@ -5,15 +5,13 @@ use actix_web::HttpResponse;
 use mongodb::Collection;
 
 use crate::{
-    database::qdrant::MQdrantClient,
-    embeddables::{media::MediaType, Embeddable},
-    model::{
+    collection_values::embeddables::{document::DocumentType, media::MediaType, Embeddable, EmbeddableType, LocationPath}, database::qdrant::MQdrantClient, model::{
         bert_actors::{
             bert_models::{KeywordExtractionModel, VectorEmbeddingModel},
             EmbeddingActor, ExtractionActor,
         },
         split_by_context_size,
-    },
+    }
 };
 
 pub trait EmbeddableMarker: Embeddable + Debug {}
@@ -47,22 +45,22 @@ impl EmbeddableService {
 
     pub async fn upload(&self, embeddable: Box<dyn Embeddable>) -> HttpResponse {
         match embeddable.path() {
-            crate::embeddables::LocationPath::Link(url) => {
+            LocationPath::Link(url) => {
                 let url = url;
             }
-            crate::embeddables::LocationPath::File(path_buf) => {
+            LocationPath::File(path_buf) => {
                 let path = path_buf;
                 match embeddable.ty() {
-                    crate::embeddables::EmbeddableType::MediaType(media_type) => match media_type {
+                    EmbeddableType::MediaType(media_type) => match media_type {
                         MediaType::MP4 => todo!(),
                         MediaType::MP3 => todo!(),
                         MediaType::PNG => todo!(),
                         MediaType::JPEG => todo!(),
                         MediaType::RAW => todo!(),
                     },
-                    crate::embeddables::EmbeddableType::DocumentType(document_type) => {
+                    EmbeddableType::DocumentType(document_type) => {
                         match document_type {
-                            crate::embeddables::document::DocumentType::PDF => {
+                            DocumentType::PDF => {
                                 let pdf = lopdf::Document::load(path).unwrap();
                                 let pages = pdf
                                     .get_pages()
@@ -76,7 +74,7 @@ impl EmbeddableService {
                                     .await
                                     .unwrap();
                             }
-                            crate::embeddables::document::DocumentType::TXT => todo!(),
+                            DocumentType::TXT => todo!(),
                         }
                     }
                 }

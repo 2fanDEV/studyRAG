@@ -5,8 +5,7 @@ use actix_web::{
 };
 
 use crate::{
-    embeddables::Embeddable,
-    services::embeddable::EmbeddableService,
+    collection_values::embeddables::Embeddable, services::embeddable::EmbeddableService
 };
 
 #[post("embeddable/upload")]

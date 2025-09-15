@@ -2,7 +2,7 @@ use bson::{DateTime, Uuid};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 use serde::{Deserialize, Serialize};
 
-use crate::embeddables::{Embeddable, EmbeddableType, LocationPath};
+use crate::collection_values::embeddables::{Embeddable, EmbeddableType, LocationPath};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum MediaType {
@@ -10,7 +10,7 @@ pub enum MediaType {
     MP3,
     PNG,
     JPEG,
-    RAW
+    RAW,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,7 +21,7 @@ pub struct Media {
     path: LocationPath,
     timestamp: i64,
     length: u32,
-    tags: Vec<Vec<Keyword>>
+    tags: Vec<Vec<Keyword>>,
 }
 
 impl Embeddable for Media {
@@ -49,12 +49,12 @@ impl Embeddable for Media {
         bson::DateTime::from_millis(self.timestamp)
     }
 
-    fn tags(&self) -> Vec<Vec<Keyword> >  {
+    fn tags(&self) -> Vec<Vec<Keyword>> {
         self.tags.clone()
     }
 
     #[doc(hidden)]
-    fn typetag_name(&self) ->  &'static str {
+    fn typetag_name(&self) -> &'static str {
         "Document"
     }
 

@@ -1,9 +1,10 @@
 import { useRef, type ChangeEvent } from "react";
-import type { Draggable } from "../types/app";
+import { v4 as uuidv4 } from "uuid";
+import type { Draggable, FileInformation } from "../types/app";
 
 type SelectorProps = {
   name: string;
-  onUpload: (draggable: Draggable) => void;
+  onUpload: (draggable: Draggable, fileInformation: FileInformation) => void;
 };
 
 export default function FileSelectorButton(props: SelectorProps) {
@@ -16,11 +17,18 @@ export default function FileSelectorButton(props: SelectorProps) {
     const files = event.target.files;
     if (files && files.length > 0) {
         let file_name = files[0].name;
+        let tempuuid = uuidv4();
         props.onUpload(
           {
-            id: file_name,
-            position: { x: 0, y: 0 },
-          }, 
+            id: tempuuid,
+            position: { x: Math.random() * 100, y: Math.random() * 100 },
+          }, {
+            id: tempuuid,
+            name: file_name,
+            ty: file_name.split('.').pop(),
+            path: URL.createObjectURL(files[0]),
+            len: files[0].size
+          }
         )
     }
   };
