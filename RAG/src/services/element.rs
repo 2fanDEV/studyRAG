@@ -1,16 +1,18 @@
 use std::sync::Arc;
 
-use actix::Message;
-use actix_web::{HttpResponse, body::MessageBody, web::Json};
-use anyhow::Result;
-use bson::Document;
+use actix_web::HttpResponse;
+use bson::{Document, doc};
+use log::debug;
 use mongodb::Collection;
 use serde::{Deserialize, Serialize};
 
 use crate::{collection_values::AsDocument, database::mongodb::MongoClient};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct Position(i32, i32);
+pub struct Position {
+    x: f32,
+    y: f32,
+}
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DraggableElement {
@@ -22,6 +24,11 @@ pub struct ElementService {
     collection: Collection<DraggableElement>,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct Count {
+    count: u64
+}
+
 impl ElementService {
     pub fn new(mongo_client: Arc<MongoClient>) -> Self {
         let mongo_connection = mongo_client.database("RAG").collection("Element");
@@ -30,10 +37,51 @@ impl ElementService {
         }
     }
 
+    pub async fn get_count(&self) -> HttpResponse {
+        debug!("UEEEEEEE");
+        let count = self.collection.count_documents(doc! {}).await.unwrap();
+        HttpResponse::Ok().json(Count { count})
+    }
+
+    pub async fn get_all(&self, page: u64) -> HttpResponse {
+        let mut draggables = vec![];
+        let page_size = 50;
+        let mut cursor = self
+            .collection
+            .find(doc! {})
+            .batch_size(50)
+            .skip(page * page_size)
+            .await
+            .unwrap();
+
+        while cursor.advance().await.unwrap() {
+            let current = cursor.deserialize_current().unwrap();
+            draggables.push(current);
+        }
+
+        HttpResponse::Ok().json(draggables)
+    }
+
     pub async fn save_element(&self, draggable: DraggableElement) -> HttpResponse {
-        return match self.collection.insert_one(&draggable).await {
-            Ok(element) => HttpResponse::Ok().json(element.inserted_id),
-            Err(_) => HttpResponse::InternalServerError().body("Failed to save element"),
+        let by_id = doc! { "id": &draggable.id};
+        return match self.collection.find_one(doc! { "id": &draggable.id}).await {
+            Ok(result) => match result {
+                Some(_draggable_element) => {
+                    match self
+                        .collection
+                        .update_one(by_id, doc! { "$set": draggable.as_doc().unwrap() })
+                        .await
+                    {
+                        Ok(res) => HttpResponse::Ok().json(res),
+                        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+                    }
+                }
+                None => match self.collection.insert_one(&draggable).await {
+                    Ok(element) => HttpResponse::Ok().json(element.inserted_id),
+                    Err(_) => HttpResponse::InternalServerError().body("Failed to save element!"),
+                },
+            },
+            Err(_) => HttpResponse::InternalServerError().finish(),
         };
     }
 

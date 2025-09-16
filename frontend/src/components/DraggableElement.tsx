@@ -2,8 +2,6 @@ import { useDraggable } from "@dnd-kit/core";
 import PDF from "./PDF";
 import type { Draggable, FileInformation } from "../types/app";
 import type { FileType } from "../types/file";
-import { saveDraggable } from "../hooks/requests";
-import { useEffect } from "react";
 
 type DraggableElementProps = Draggable & FileInformation;
 
@@ -11,6 +9,7 @@ export default function DraggableElement(props: DraggableElementProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: props.id,
   });
+
   const finalTransform = {
     x: props.position.x + (transform?.x ?? 0),
     y: props.position.y + (transform?.y ?? 0),
@@ -28,16 +27,6 @@ export default function DraggableElement(props: DraggableElementProps) {
         return <div>Unsupported file type</div>;
     }
   };
-
-  useEffect(() => {
-    console.log("Effect ran for", props.id, props.position);
-    saveDraggable({
-      id: props.id,
-      position: props.position,
-    });
-  }, [props.position]
-);
-
   return (
     <div
       className="inline-block w-auto h-auto bg-yellow-600 cursor-grab text-xs"

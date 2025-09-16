@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useCallback, useState } from "react";
 
-export default function useAxios<T>(props: AxiosParameter) {
+export default function useAxios<T>(props: AxiosParameter){
   let [data, setData] = useState<T | null >(null);
   let [loading, setLoading] = useState(false);
   let [error, setError] = useState<string | null>(null);
@@ -9,8 +9,8 @@ export default function useAxios<T>(props: AxiosParameter) {
   let [uploadStarted, setUploadStarted] = useState(false);
   let [downloadProgress, setDownloadProgress] = useState(0);
   let [downloadStarted, setDownloadStarted] = useState(false);
-  const sendRequest = useCallback(
-    async (options?: Partial<AxiosParameter>) => {
+  const sendRequest= useCallback(
+    async (options?: Partial<AxiosParameter>): Promise<T | null> => {
       setLoading(true);
       setError(null);
       try {
@@ -39,13 +39,15 @@ export default function useAxios<T>(props: AxiosParameter) {
           },
         });
         setData(response.data);
+        return data;
       } catch (err: any) {
         setError(err.message || "Something went wrong!");
       } finally {
         setLoading(false);
       }
+      return null;
     },
-    [props.url, props.headers, props.method, props.data]
+    []
   );
   return {
     data,

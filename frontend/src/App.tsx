@@ -1,32 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DndContext } from "@dnd-kit/core";
 import FileSelectorButton from "./components/FileSelector";
 import DraggableElement from "./components/DraggableElement";
-import type { Draggable, FileInformation} from "./types/app";
+import type { Draggable, FileInformation } from "./types/app";
 import getAltOrCmdKey from "./util/os";
+import useGetAllDraggables, { useSaveDraggable } from "./api/draggable";
 
 function App() {
   const [positions, setPositions] = useState<Draggable[]>([]);
   const [fileDetails, setFileDetails] = useState<FileInformation[]>([]);
+  const { saveDraggable } = useSaveDraggable();
+  const { getAllDraggables, ...misc } = useGetAllDraggables();
 
-  const handleUpload = (draggable: Draggable, fileInformation: FileInformation) => {
-     setPositions((prev) => {
-        let alreadyExistsIndex = prev.findIndex((p) => p.id === draggable.id);
-        if (alreadyExistsIndex !== -1) {
-          let i = 0;
-          while (true) {
-            let appendix = " (" + i + ")";
-            if (prev.findIndex((p) => p.id === draggable.id + appendix) === -1) {
-              draggable.id += appendix;
-              break;
-            }
-            i++;
+  useEffect(() => {
+    getAllDraggables().then((draggables) => {
+      setPositions(draggables ?? []);
+    });
+  }, [getAllDraggables]);
+
+  const handleUpload = (
+    draggable: Draggable,
+    fileInformation: FileInformation
+  ) => {
+    setPositions((prev) => {
+      let alreadyExistsIndex = prev.findIndex((p) => p.id === draggable.id);
+      if (alreadyExistsIndex !== -1) {
+        let i = 0;
+        while (true) {
+          let appendix = " (" + i + ")";
+          if (prev.findIndex((p) => p.id === draggable.id + appendix) === -1) {
+            draggable.id += appendix;
+            break;
           }
+          i++;
         }
-        return [...prev, draggable];
-  })
+      }
+      saveDraggable(draggable);
+      return [...prev, draggable];
+    });
     setFileDetails((prev) => [...prev, fileInformation]);
-  }
+  };
 
   return (
     <div className="w-full h-full absolute bg-[#061319] -z-8">
@@ -50,18 +63,21 @@ function App() {
           onDragEnd={({ delta, active }) => {
             setPositions((prev) => {
               const id = active.id as string;
-              return prev.map((p) =>
-                p.id === id
-                  ? {
-                      ...p,
-                      id: p.id,
-                      position: {
-                        x: p.position.x + delta.x,
-                        y: p.position.y + delta.y,
-                      },
-                    }
-                  : p
-              );
+              let index = prev.findIndex((p) => p.id === id);
+              let element = prev[index];
+              const updated = {
+                ...element,
+                position: {
+                  x: element.position.x + delta.x,
+                  y: element.position.y + delta.y,
+                },
+              };
+              saveDraggable({
+                id: element.id,
+                position: updated.position,
+              });
+
+              return prev.map((p) => (p.id === id ? updated : p));
             });
           }}
         >
@@ -69,12 +85,7 @@ function App() {
             let id = element.id;
             let fileInfo = fileDetails.find((f) => f.id === id);
             if (!fileInfo) return null;
-            return (
-              <DraggableElement
-                {...element}
-                {...fileInfo}
-              />
-            );
+            return <DraggableElement {...element} {...fileInfo} />;
           })}
         </DndContext>
       </div>

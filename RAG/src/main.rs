@@ -8,7 +8,7 @@ use actix_web::{
     App, HttpServer,
 };
 use RAG::{
-    database::{mongodb::MongoClient, qdrant::MQdrantClient}, endpoints::{element::save_draggable, embeddable::embeddable_upload}, services::{element::ElementService, embeddable::EmbeddableService}
+    database::{mongodb::MongoClient, qdrant::MQdrantClient}, endpoints::{element::{get_all_draggable, get_all_draggable_count, save_draggable}, embeddable::embeddable_upload}, services::{element::ElementService, embeddable::EmbeddableService}
 };
 
 pub struct AppState {
@@ -47,9 +47,11 @@ async fn main() -> std::io::Result<()> {
             )
             .wrap(Logger::default())
             .app_data(embeddable_service.clone())
-            .app_data(ElementService::new(mongo_client.clone()))
+            .app_data(Data::new(ElementService::new(mongo_client.clone())))
             .service(embeddable_upload)
             .service(save_draggable)
+            .service(get_all_draggable)
+            .service(get_all_draggable_count)
     })
     .bind(("127.0.0.1", 8080))?
     .workers(1)
