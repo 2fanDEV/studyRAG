@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useCallback, useState } from "react";
 
-export default function useAxios<T>(props: AxiosParameter){
-  let [data, setData] = useState<T | null >(null);
+export default function useAxios<RQD, RSD>(props: AxiosParameter<RQD>){
+  let [data, setData] = useState<RSD | undefined>();
   let [loading, setLoading] = useState(false);
   let [error, setError] = useState<string | null>(null);
   let [uploadProgress, setUploadProgress] = useState(0);
@@ -10,7 +10,7 @@ export default function useAxios<T>(props: AxiosParameter){
   let [downloadProgress, setDownloadProgress] = useState(0);
   let [downloadStarted, setDownloadStarted] = useState(false);
   const sendRequest= useCallback(
-    async (options?: Partial<AxiosParameter>): Promise<T | null> => {
+    async (options?: Partial<AxiosParameter<RQD>>): Promise<RSD | undefined> => {
       setLoading(true);
       setError(null);
       try {
@@ -45,7 +45,6 @@ export default function useAxios<T>(props: AxiosParameter){
       } finally {
         setLoading(false);
       }
-      return null;
     },
     []
   );

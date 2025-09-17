@@ -3,11 +3,13 @@ import PDF from "./PDF";
 import type { Draggable, FileInformation } from "../types/app";
 import type { FileType } from "../types/file";
 
-type DraggableElementProps = Draggable & FileInformation;
+export type RAGDraggableElement = Omit<Draggable & FileInformation, 'id'> & { 
+  id?: string | undefined;
+};
 
-export default function DraggableElement(props: DraggableElementProps) {
+export default function DraggableElement(props: RAGDraggableElement) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: props.id,
+    id: props.id || "0000",
   });
 
   const finalTransform = {

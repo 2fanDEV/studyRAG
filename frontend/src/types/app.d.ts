@@ -4,7 +4,7 @@ export interface Position {
 }
 
 export interface Draggable {
-  id: string;
+  id?: string;
   position: Position;
 }
 

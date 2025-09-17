@@ -1,44 +1,75 @@
 import { useEffect, useState } from "react";
 import { DndContext } from "@dnd-kit/core";
 import FileSelectorButton from "./components/FileSelector";
-import DraggableElement from "./components/DraggableElement";
-import type { Draggable, FileInformation } from "./types/app";
+import DraggableElement, {
+  type RAGDraggableElement,
+} from "./components/DraggableElement";
 import getAltOrCmdKey from "./util/os";
 import useGetAllDraggables, { useSaveDraggable } from "./api/draggable";
+import useUploadAsEmbeddable, {
+  useGetFileInformations,
+} from "./api/fileInformation";
+import type { FileInformation } from "./types/app";
+import invariant from "tiny-invariant";
 
 function App() {
-  const [positions, setPositions] = useState<Draggable[]>([]);
-  const [fileDetails, setFileDetails] = useState<FileInformation[]>([]);
+  const [draggableElements, setDraggableElements] = useState<
+    RAGDraggableElement[]
+  >([]);
   const { saveDraggable } = useSaveDraggable();
   const { getAllDraggables, ...misc } = useGetAllDraggables();
+  const { uploadAsEmbeddable, ...uploadProps } = useUploadAsEmbeddable();
+  const { getFileInformations } = useGetFileInformations();
 
   useEffect(() => {
-    getAllDraggables().then((draggables) => {
-      setPositions(draggables ?? []);
+    const fetchAndCombineData = async () => {
+      const draggables = (await getAllDraggables()) || [];
+      const ids = draggables
+        .map((elem) => elem.id)
+        .filter((elem) => elem !== undefined);
+
+      let fileInfos = (await getFileInformations(ids)) || [];
+      const fileMap = {} as Record<string, FileInformation>;
+      if (fileInfos) {
+        fileInfos.forEach((info) => {
+          fileMap[info.id] = info;
+        });
+      }
+      const combinedElements: RAGDraggableElement[] = draggables.map(
+        (draggable) => {
+          invariant(draggable.id, "Id cannot be null here!");
+          const fileInfo = fileMap[draggable.id];
+          return {
+            ...draggable,
+            ...fileInfo,
+          };
+        }
+      );
+      return combinedElements;
+    };
+    fetchAndCombineData().then((elements) => {
+      setDraggableElements(elements);
     });
   }, [getAllDraggables]);
 
-  const handleUpload = (
-    draggable: Draggable,
-    fileInformation: FileInformation
-  ) => {
-    setPositions((prev) => {
-      let alreadyExistsIndex = prev.findIndex((p) => p.id === draggable.id);
+  const handleUpload = (item: RAGDraggableElement) => {
+    setDraggableElements((prev) => {
+      let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
       if (alreadyExistsIndex !== -1) {
         let i = 0;
         while (true) {
           let appendix = " (" + i + ")";
-          if (prev.findIndex((p) => p.id === draggable.id + appendix) === -1) {
-            draggable.id += appendix;
+          if (prev.findIndex((p) => p.id === item.id + appendix) === -1) {
+            item.id += appendix;
             break;
           }
           i++;
         }
       }
-      saveDraggable(draggable);
-      return [...prev, draggable];
+      return [...prev, item];
     });
-    setFileDetails((prev) => [...prev, fileInformation]);
+    saveDraggable(item);
+    uploadAsEmbeddable(item);
   };
 
   return (
@@ -61,32 +92,27 @@ function App() {
       <div className="text-white -z-1 bg-transparent">
         <DndContext
           onDragEnd={({ delta, active }) => {
-            setPositions((prev) => {
+            setDraggableElements((prev) => {
               const id = active.id as string;
               let index = prev.findIndex((p) => p.id === id);
               let element = prev[index];
-              const updated = {
+              const updated: RAGDraggableElement = {
                 ...element,
                 position: {
                   x: element.position.x + delta.x,
                   y: element.position.y + delta.y,
                 },
               };
-              saveDraggable({
-                id: element.id,
-                position: updated.position,
-              });
-
+              saveDraggable(updated);
               return prev.map((p) => (p.id === id ? updated : p));
             });
           }}
         >
-          {Object.entries(positions).map(([, element]) => {
+          {Object.entries(draggableElements).map(([, element]) => {
             let id = element.id;
-            let fileInfo = fileDetails.find((f) => f.id === id);
-            if (!fileInfo) return null;
-            return <DraggableElement {...element} {...fileInfo} />;
+            return <DraggableElement {...element} />;
           })}
+          <div> {uploadProps.uploadProgress}</div>
         </DndContext>
       </div>
     </div>
