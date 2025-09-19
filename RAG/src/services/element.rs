@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use actix_web::HttpResponse;
-use bson::{Document, doc};
+use bson::{Document, Uuid, doc};
 use log::debug;
 use mongodb::Collection;
 use serde::{Deserialize, Serialize};
 
-use crate::{collection_values::AsDocument, database::mongodb::MongoClient};
+use crate::{boxed_values::Count, collection_values::AsDocument, database::mongodb::MongoClient};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Position {
@@ -19,14 +19,10 @@ pub struct DraggableElement {
     id: Option<String>,
     position: Position,
 }
+
 impl AsDocument for DraggableElement {}
 pub struct ElementService {
     collection: Collection<DraggableElement>,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct Count {
-    count: u64
 }
 
 impl ElementService {
@@ -38,9 +34,8 @@ impl ElementService {
     }
 
     pub async fn get_count(&self) -> HttpResponse {
-        debug!("UEEEEEEE");
         let count = self.collection.count_documents(doc! {}).await.unwrap();
-        HttpResponse::Ok().json(Count { count})
+        HttpResponse::Ok().json(Count { count })
     }
 
     pub async fn get_all(&self, page: u64) -> HttpResponse {
@@ -53,7 +48,6 @@ impl ElementService {
             .skip(page * page_size)
             .await
             .unwrap();
-
         while cursor.advance().await.unwrap() {
             let current = cursor.deserialize_current().unwrap();
             draggables.push(current);
@@ -62,7 +56,7 @@ impl ElementService {
         HttpResponse::Ok().json(draggables)
     }
 
-    pub async fn save_element(&self, draggable: DraggableElement) -> HttpResponse {
+    pub async fn save_element(&self, mut draggable: DraggableElement) -> HttpResponse {
         let by_id = doc! { "id": &draggable.id};
         return match self.collection.find_one(doc! { "id": &draggable.id}).await {
             Ok(result) => match result {
@@ -76,10 +70,15 @@ impl ElementService {
                         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
                     }
                 }
-                None => match self.collection.insert_one(&draggable).await {
-                    Ok(element) => HttpResponse::Ok().json(element.inserted_id),
-                    Err(_) => HttpResponse::InternalServerError().body("Failed to save element!"),
-                },
+                None => {
+                    draggable.id = Some(Uuid::new().to_string());
+                    return match self.collection.insert_one(&draggable).await {
+                        Ok(element) => HttpResponse::Ok().json(draggable.id),
+                        Err(_) => {
+                            HttpResponse::InternalServerError().body("Failed to save element!")
+                        }
+                    };
+                }
             },
             Err(_) => HttpResponse::InternalServerError().finish(),
         };

@@ -12,6 +12,5 @@ export interface FileInformation {
   id: string;
   name: string;
   ty: FileType;
-  path: string;
   len: number;
 }

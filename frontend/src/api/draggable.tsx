@@ -3,9 +3,9 @@ import useAxios from "../hooks/useAxios";
 import type { Draggable } from "../types/app";
 import type { RAGDraggableElement } from "../components/DraggableElement";
 
-export default function useGetAllDraggables() {
+export default function useFetchAllDraggables() {
   const { sendRequest, ...misc } = useAxios<void, Draggable[]>({
-    url: import.meta.env.VITE_API + "/draggable/getAll",
+    url: import.meta.env.VITE_API + "/draggable/all/0",
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -13,14 +13,14 @@ export default function useGetAllDraggables() {
     },
   });
 
-  const getAllDraggables = useCallback(() => {
+  const fetchAllDraggables = useCallback(() => {
     return sendRequest();
   }, [sendRequest]);
-  return { getAllDraggables };
+  return { fetchAllDraggables, ...misc };
 }
 
 export function useSaveDraggable() {
-  const { sendRequest, ...misc } = useAxios<Draggable, string>({
+  const { sendRequest, data, ...misc } = useAxios<Draggable, string>({
     url: import.meta.env.VITE_API + "/draggable/save",
     method: "POST",
     headers: {
@@ -31,7 +31,7 @@ export function useSaveDraggable() {
 
   const saveDraggable = useCallback(
     (draggable: RAGDraggableElement) => {
-      sendRequest({
+      return sendRequest({
         data: {
           id: draggable.id,
           position: draggable.position,
@@ -41,5 +41,5 @@ export function useSaveDraggable() {
     [sendRequest]
   );
 
-  return { saveDraggable, ...misc };
+  return { saveDraggable, data, ...misc };
 }

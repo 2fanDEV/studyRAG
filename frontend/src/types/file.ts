@@ -1,5 +1,5 @@
 export const FileType = {
-  PDF: "pdf",
+  PDF: "PDF",
 } as const;
 
 export type FileType = (typeof FileType)[keyof typeof FileType];

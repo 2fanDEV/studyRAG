@@ -8,7 +8,7 @@ use actix_web::{
     App, HttpServer,
 };
 use RAG::{
-    database::{mongodb::MongoClient, qdrant::MQdrantClient}, endpoints::{element::{get_all_draggable, get_all_draggable_count, save_draggable}, embeddable::embeddable_upload}, services::{element::ElementService, embeddable::EmbeddableService}
+    database::{mongodb::MongoClient, qdrant::MQdrantClient}, endpoints::{element::{get_all_draggable, get_all_draggable_count, save_draggable}, media_information::{file_upload, save_media_information}}, services::{element::ElementService, embeddable::EmbeddableService, media::MediaService}
 };
 
 pub struct AppState {
@@ -17,12 +17,7 @@ pub struct AppState {
 
 pub fn create_embeddable_service(
     mongo_client: Arc<MongoClient>,
-    qdrant: Arc<MQdrantClient>,
 ) -> Data<EmbeddableService> {
-    Data::new(EmbeddableService::new(
-        mongo_client.database("RAG").collection("embeddable"),
-        qdrant
-    ))
 }
 
 #[actix_web::main]
@@ -36,7 +31,6 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         let qdrant = Arc::new(MQdrantClient::new().unwrap());
         let mongo_client = Arc::new(MongoClient::new().unwrap());
-        let embeddable_service = create_embeddable_service(mongo_client.clone(), qdrant);
         App::new()
             .wrap(
                 Cors::default()
@@ -46,9 +40,9 @@ async fn main() -> std::io::Result<()> {
                     .supports_credentials(),
             )
             .wrap(Logger::default())
-            .app_data(embeddable_service.clone())
+            .app_data(Data::new(MediaService::new(mongo_client.clone())))
             .app_data(Data::new(ElementService::new(mongo_client.clone())))
-            .service(embeddable_upload)
+            .service(save_media_information)
             .service(save_draggable)
             .service(get_all_draggable)
             .service(get_all_draggable_count)

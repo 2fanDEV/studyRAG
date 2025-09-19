@@ -9,7 +9,7 @@ export type RAGDraggableElement = Omit<Draggable & FileInformation, 'id'> & {
 
 export default function DraggableElement(props: RAGDraggableElement) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: props.id || "0000",
+    id: props.id || "",
   });
 
   const finalTransform = {
@@ -23,7 +23,7 @@ export default function DraggableElement(props: RAGDraggableElement) {
 
   const element = (type: FileType) => {
     switch (type) {
-      case "pdf":
+      case "PDF":
         return <PDF {...props}></PDF>;
       default:
         return <div>Unsupported file type</div>;

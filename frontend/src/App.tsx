@@ -5,30 +5,27 @@ import DraggableElement, {
   type RAGDraggableElement,
 } from "./components/DraggableElement";
 import getAltOrCmdKey from "./util/os";
-import useGetAllDraggables, { useSaveDraggable } from "./api/draggable";
-import useUploadAsEmbeddable, {
-  useGetFileInformations,
-} from "./api/fileInformation";
+import useFetchAllDraggables, { useSaveDraggable } from "./api/draggable";
 import type { FileInformation } from "./types/app";
 import invariant from "tiny-invariant";
+import useUploadFileInformation, { useFetchFileInformations } from "./api/fileInformation";
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
     RAGDraggableElement[]
   >([]);
   const { saveDraggable } = useSaveDraggable();
-  const { getAllDraggables, ...misc } = useGetAllDraggables();
-  const { uploadAsEmbeddable, ...uploadProps } = useUploadAsEmbeddable();
-  const { getFileInformations } = useGetFileInformations();
+  const { fetchAllDraggables } = useFetchAllDraggables();
+  const { uploadFileInformation } = useUploadFileInformation();
+  const { fetchFileInformations } = useFetchFileInformations();
 
   useEffect(() => {
     const fetchAndCombineData = async () => {
-      const draggables = (await getAllDraggables()) || [];
+      const draggables = (await fetchAllDraggables()) || [];
       const ids = draggables
         .map((elem) => elem.id)
         .filter((elem) => elem !== undefined);
-
-      let fileInfos = (await getFileInformations(ids)) || [];
+      let fileInfos = (await fetchFileInformations(ids)) || [];
       const fileMap = {} as Record<string, FileInformation>;
       if (fileInfos) {
         fileInfos.forEach((info) => {
@@ -45,33 +42,38 @@ function App() {
           };
         }
       );
-      return combinedElements;
+      setDraggableElements(combinedElements);
     };
-    fetchAndCombineData().then((elements) => {
-      setDraggableElements(elements);
-    });
-  }, [getAllDraggables]);
+    fetchAndCombineData();
+  }, [fetchAllDraggables, fetchFileInformations]);
 
-  const handleUpload = (item: RAGDraggableElement) => {
+  const handleUpload = async (item: RAGDraggableElement) => {
+    try {
+    const uuid = await saveDraggable(item);
+    let updatedItem = {
+      id: uuid,
+      ...item,
+    };
+    await uploadFileInformation(updatedItem);
     setDraggableElements((prev) => {
       let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
+      let newName = item.name;
       if (alreadyExistsIndex !== -1) {
         let i = 0;
         while (true) {
           let appendix = " (" + i + ")";
-          if (prev.findIndex((p) => p.id === item.id + appendix) === -1) {
-            item.id += appendix;
+          if (prev.findIndex((p) => p.name === newName + appendix) === -1) {
+            newName += appendix;
             break;
           }
           i++;
         }
       }
-      return [...prev, item];
-    });
-    saveDraggable(item);
-    uploadAsEmbeddable(item);
+      return [...prev, { ...updatedItem, name: newName }];
+    }); } catch(error) {
+      console.log(error);
+    }
   };
-
   return (
     <div className="w-full h-full absolute bg-[#061319] -z-8">
       <div
@@ -94,10 +96,12 @@ function App() {
           onDragEnd={({ delta, active }) => {
             setDraggableElements((prev) => {
               const id = active.id as string;
+              console.log(id);
               let index = prev.findIndex((p) => p.id === id);
               let element = prev[index];
               const updated: RAGDraggableElement = {
                 ...element,
+                id: id,
                 position: {
                   x: element.position.x + delta.x,
                   y: element.position.y + delta.y,
@@ -112,7 +116,6 @@ function App() {
             let id = element.id;
             return <DraggableElement {...element} />;
           })}
-          <div> {uploadProps.uploadProgress}</div>
         </DndContext>
       </div>
     </div>

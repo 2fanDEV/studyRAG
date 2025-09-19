@@ -5,8 +5,7 @@ use crate::services::element::{DraggableElement, ElementService};
 
 #[post("draggable/save")]
 pub async fn save_draggable(draggable: Json<DraggableElement>, element_service: Data<ElementService> ) -> HttpResponse {
-    debug!("HELLLOOOO");
-    element_service.save_element(draggable.into_inner()).await
+    return element_service.save_element(draggable.into_inner()).await
 }
 
 #[get("draggable/count")]

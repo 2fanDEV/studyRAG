@@ -2,7 +2,7 @@ import { useRef, type ChangeEvent } from "react";
 import type { RAGDraggableElement } from "./DraggableElement";
 type SelectorProps = {
   name: string;
-  onUpload: (element: RAGDraggableElement) => void;
+  onUpload: (element: RAGDraggableElement, file: File) => void;
 };
 
 export default function FileSelectorButton(props: SelectorProps) {
@@ -19,10 +19,10 @@ export default function FileSelectorButton(props: SelectorProps) {
         {
           position: { x: Math.random() * 100, y: Math.random() * 100 },
           name: file_name,
-          ty: file_name.split(".").pop(),
-          path: URL.createObjectURL(files[0]),
+          ty: file_name.split(".").pop()?.toUpperCase(),
           len: files[0].size,
-        }
+        },
+        files[0]
       );
     }
   };
