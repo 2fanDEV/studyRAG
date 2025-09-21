@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use actix_multipart::{form::MultipartForm, Multipart};
+use actix_multipart::{form::{json::Json, MultipartForm}, Multipart};
 use actix_web::HttpResponse;
 use bson::doc;
 use mongodb::Collection;
@@ -15,11 +15,6 @@ pub struct MultipartUploadInformation {
     pub bytes: Vec<u8>,
     pub received_chunk_indexes: i32,
     pub total_chunk_indexes: i32
-}
-
-#[derive(Debug, MultipartForm)]
-pub struct UploadForm {
-    
 }
 
 pub struct MediaService {
@@ -64,8 +59,10 @@ impl MediaService {
         }
     }
 
-    pub fn upload_multi_part_file(&mut self, payload: Multipart) -> HttpResponse {
-
+    pub fn upload_multi_part_file(&mut self, file_name: String, 
+        chunk_data: &[u8],
+        chunk_index: u32,
+        total_chunks: u32) -> HttpResponse {
 
         HttpResponse::Ok().finish()
     }
