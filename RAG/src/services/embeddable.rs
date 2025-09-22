@@ -27,7 +27,6 @@ impl EmbeddableService {
         let extracting_actor = SyncArbiter::start(1, || {
             ExtractionActor::new(Box::new(KeywordExtractionModel::new().unwrap()))
         });
-
         Self {
             qdrant,
             vector_embedding_actor: embedding_actor,

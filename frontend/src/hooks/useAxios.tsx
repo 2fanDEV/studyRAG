@@ -68,7 +68,7 @@ export default function useAxios<RQD, RSD>(props: AxiosParameter<RQD>){
   const [uploadProgress, onUploadProgress] = useState(0); 
 
   const sendChunkedFileRequest = useCallback(
-    async (options: Partial<AxiosFileParameter>): Promise<RSD | undefined> =>
+    async (id: string, options: Partial<AxiosFileParameter>): Promise<RSD | undefined> =>
   {
         setLoading(true);
         setError(null);
@@ -82,10 +82,11 @@ export default function useAxios<RQD, RSD>(props: AxiosParameter<RQD>){
             const offset = chunk * chunkSize;
             const data = options.file.slice(offset, offset + chunkSize);
             const formData= new FormData();
+            formData.append("id", id);
             formData.append("chunk_data", data);
             formData.append("chunk_index", chunk.toString());
             formData.append("total_chunks", totalChunks.toString());
-            formData.append("file_name", File.name);
+            
             try {
             const response=  await axios({
               url: options.url || props.url,

@@ -9,6 +9,6 @@ interface AxiosFileParameter {
   url: string;
   method: "POST",
   len: number,
-  file: File,
+  file?: File,
   headers? : Record<string, string>
 }

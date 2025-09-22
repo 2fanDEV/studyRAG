@@ -1,17 +1,15 @@
 use std::sync::Arc;
 
-use actix_cors::Cors;
-use actix_web::{
-    http,
-    middleware::Logger,
-    web::{self, Data},
-    App, HttpServer,
-};
 use RAG::{
-    database::{mongodb::MongoClient, qdrant::MQdrantClient}, endpoints::{element::{get_all_draggable, get_all_draggable_count, save_draggable}, media_information::{file_upload, save_media_information}}, services::{element::ElementService, embeddable::EmbeddableService, media::MediaService}
+    database::{mongodb::MongoClient, qdrant::MQdrantClient},
+    endpoints::{
+        element::{get_all_draggable, get_all_draggable_count, save_draggable},
+        media_information::{save_media_information},
+    },
+    services::{element::ElementService, media::MediaService},
 };
-
-
+use actix_cors::Cors;
+use actix_web::{App, HttpServer, http, middleware::Logger, web::Data};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -34,7 +32,7 @@ async fn main() -> std::io::Result<()> {
             )
             .wrap(Logger::default())
             .app_data(Data::new(MediaService::new(mongo_client.clone())))
-            .app_data(Data::new(ElementService::new(mongo_client.clone()))
+            .app_data(Data::new(ElementService::new(mongo_client.clone())))
             .service(save_media_information)
             .service(save_draggable)
             .service(get_all_draggable)

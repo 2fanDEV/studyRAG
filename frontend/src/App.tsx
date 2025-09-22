@@ -8,7 +8,7 @@ import getAltOrCmdKey from "./util/os";
 import useFetchAllDraggables, { useSaveDraggable } from "./api/draggable";
 import type { FileInformation } from "./types/app";
 import invariant from "tiny-invariant";
-import useUploadFileInformation, { useFetchFileInformations } from "./api/fileInformation";
+import useUploadFileInformation, { useFetchFileInformations, useSaveFileInformation } from "./api/fileInformation";
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
@@ -16,7 +16,7 @@ function App() {
   >([]);
   const { saveDraggable } = useSaveDraggable();
   const { fetchAllDraggables } = useFetchAllDraggables();
-  const { uploadFileInformation } = useUploadFileInformation();
+  const { saveFileInformation } = useSaveFileInformation();
   const { fetchFileInformations } = useFetchFileInformations();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ function App() {
       id: uuid,
       ...item,
     };
-    await uploadFileInformation(updatedItem);
+    await saveFileInformation(updatedItem);
     setDraggableElements((prev) => {
       let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
       let newName = item.name;

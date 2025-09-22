@@ -12,6 +12,11 @@ pub enum LocationPath {
     File(PathBuf),
 }
 
+impl Default for LocationPath {
+    fn default() -> Self {
+        LocationPath::File(PathBuf::from("lelele"))
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy)]
 pub enum MediaType {
@@ -25,18 +30,28 @@ pub enum MediaType {
     PNG,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Media {
+    pub id: String,
+    pub bytes: Vec<u8>,
+}
+
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MediaInformation {
-    id: String,
-    name: String,
-    ty: MediaType,
-    path: LocationPath,
+    pub id: String,
+    pub name: String,
+    pub ty: MediaType,
+    #[serde(skip)]
+    pub path: LocationPath,
+    #[serde(skip)]
+    pub bytes: Vec<u8>,
     #[serde(rename = "len")]
-    length: u32,
+    pub length: u32,
     #[serde(default)]
-    timestamp: i64,
+    pub timestamp: i64,
     #[serde(default)]
-    tags: Vec<Vec<Keyword>>,
+    pub tags: Vec<Vec<Keyword>>,
 }
 
 impl AsDocument for MediaInformation {}

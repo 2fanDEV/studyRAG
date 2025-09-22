@@ -1,3 +1,3 @@
 
 #[post("embeddings/file/process")]
-pub fn process_embeddings( ) {}
+pub fn process_embeddings(id: String) {}
