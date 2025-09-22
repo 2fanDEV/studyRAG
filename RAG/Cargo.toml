@@ -7,7 +7,7 @@ edition = "2024"
 rust-bert = { version="0.23.0", features=["download-libtorch"]}
 console = { version = "0.16", features = ["std"] }
 lopdf = "0.37.0"
-actix-web = "4.11.0"
+actix-web = "4.11.0" 
 qdrant-client = "1.15.0"
 mongodb = "3.2.4"
 bson = "2.15.0"
@@ -25,3 +25,6 @@ typetag = "0.2.20"
 anyhow = "1.0.99"
 utoipa = "5.4.0"
 actix-multipart = "0.7.2"
+tokio = { version = "1.47.1", features = ["full"] }
+futures-util = "0.3.31"
+serde_qs = { version = "0.15.0", features = ["actix4"]}

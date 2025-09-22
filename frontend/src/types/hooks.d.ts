@@ -2,6 +2,7 @@ interface AxiosParameter<RQD> {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   url: string;
   data?: RQD;
+  params?: any,
   headers?: Record<string, string>;
 }
 

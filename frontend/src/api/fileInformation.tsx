@@ -20,13 +20,13 @@ export default function useUploadFileInformation(
     setUploadProgress
   );
 
-  const uploadFileInformation = useCallback(
+  const uploadFile= useCallback(
     (id: string, file: File) => {
       return sendChunkedFileRequest(id, { file: file });
     },
     [sendChunkedFileRequest]
   );
-  return { uploadFileInformation, ...misc };
+  return { uploadFile, ...misc };
 }
 export function useSaveFileInformation() {
   const { sendRequest, ...misc } = useAxios<FileInformation, void>({
@@ -57,7 +57,7 @@ export function useSaveFileInformation() {
 
 export function useFetchFileInformations() {
   const { sendRequest, ...misc } = useAxios<string[], FileInformation[]>({
-    url: import.meta.env.VITE_API + "/fileInformations/getByIds",
+    url: import.meta.env.VITE_API + "/file_information/get_by_ids",
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export function useFetchFileInformations() {
 
   const fetchFileInformations = useCallback(
     (ids: string[]) => {
-      return sendRequest({ data: ids });
+      return sendRequest({ params: { ids: ids } });
     },
     [sendRequest]
   );

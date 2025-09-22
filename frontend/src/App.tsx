@@ -18,6 +18,7 @@ function App() {
   const { fetchAllDraggables } = useFetchAllDraggables();
   const { saveFileInformation } = useSaveFileInformation();
   const { fetchFileInformations } = useFetchFileInformations();
+  const { uploadFile } = useUploadFileInformation(() => {}); 
 
   useEffect(() => {
     const fetchAndCombineData = async () => {
@@ -47,7 +48,7 @@ function App() {
     fetchAndCombineData();
   }, [fetchAllDraggables, fetchFileInformations]);
 
-  const handleUpload = async (item: RAGDraggableElement) => {
+  const handleUpload = async (item: RAGDraggableElement, file: File) => {
     try {
     const uuid = await saveDraggable(item);
     let updatedItem = {
@@ -55,6 +56,7 @@ function App() {
       ...item,
     };
     await saveFileInformation(updatedItem);
+    await uploadFile(uuid!, file);
     setDraggableElements((prev) => {
       let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
       let newName = item.name;
@@ -96,7 +98,6 @@ function App() {
           onDragEnd={({ delta, active }) => {
             setDraggableElements((prev) => {
               const id = active.id as string;
-              console.log(id);
               let index = prev.findIndex((p) => p.id === id);
               let element = prev[index];
               const updated: RAGDraggableElement = {

@@ -1,19 +1,15 @@
-use std::{
-    cell::RefCell,
-    sync::Arc,
-};
-
-use actix_web::HttpResponse;
-use bson::doc;
-use log::debug;
-use mongodb::Collection;
-
 use crate::{
     collection_values::{
-        media::{Media, MediaInformation}, AsDocument
+        media::{Media, MediaInformation},
+        AsDocument,
     },
     database::mongodb::MongoClient,
 };
+use actix_web::HttpResponse;
+use bson::doc;
+use futures_util::io::AsyncWriteExt;
+use mongodb::{gridfs::GridFsBucket, options::GridFsBucketOptions, Collection};
+use std::{cell::RefCell, sync::Arc};
 
 pub struct MultipartUploadInformation {
     pub id: String,
@@ -25,23 +21,32 @@ pub struct MultipartUploadInformation {
 
 pub struct MediaService {
     pub media_information_collection: Collection<MediaInformation>,
-    pub media_collection: Collection<Media>,
+    pub media_bucket: GridFsBucket,
     pub ongoing_multi_part_uploads: RefCell<Vec<MultipartUploadInformation>>,
 }
 
 impl MediaService {
     pub fn new(mongo_client: Arc<MongoClient>) -> Self {
         Self {
-            media_information_collection: mongo_client.database("RAG").collection("MediaInformation"),
-            media_collection: mongo_client.database("RAG").collection("Media"),
+            media_information_collection: mongo_client
+                .database("RAG")
+                .collection("MediaInformation"),
+            media_bucket: mongo_client.database("RAG").gridfs_bucket(
+                GridFsBucketOptions::builder()
+                    .bucket_name(Some("Media".to_string()))
+                    .build(),
+            ),
             ongoing_multi_part_uploads: RefCell::new(vec![]),
         }
     }
 
     pub async fn save(&self, media_information: MediaInformation) -> HttpResponse {
-        debug!("{:?}", media_information);
         let query_by_id = doc! { "id": &media_information.id()};
-        return match self.media_information_collection.find_one(query_by_id.clone()).await {
+        return match self
+            .media_information_collection
+            .find_one(query_by_id.clone())
+            .await
+        {
             Ok(found_media_information) => match found_media_information {
                 Some(_media_info) => {
                     match self
@@ -68,6 +73,24 @@ impl MediaService {
                 }
             },
             Err(err) => HttpResponse::InternalServerError().finish(),
+        };
+    }
+
+    pub async fn get_by_ids(&self, ids: &[String]) -> HttpResponse {
+        return match self
+            .media_information_collection
+            .find(doc! { "id": { "$in": ids}})
+            .await
+        {
+            Ok(mut cursor) => {
+                let mut media_informations = vec![];
+                while cursor.advance().await.unwrap() {
+                    let current = cursor.deserialize_current().unwrap();
+                    media_informations.push(current);
+                }
+                return HttpResponse::Ok().json(media_informations);
+            }
+            Err(_) => HttpResponse::Ok().finish(),
         };
     }
 
@@ -100,18 +123,16 @@ impl MediaService {
 
         if count_uploads.eq(&total_chunks) {
             let bytes = self.get_bytes_of_multipart(&id);
-            let media = Media {
-                id: id.clone(),
-                bytes,
+
+            result = match self.media_bucket.open_upload_stream(&id).await {
+                Ok(mut stream) => {
+                    stream.write_all(&bytes[..]).await.unwrap();
+                    stream.close().await.unwrap();
+                    HttpResponse::Ok().finish()
+                }
+                Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
             };
-            result = match self
-                .media_collection
-                .insert_one(&media)
-                .await
-            {
-                Ok(elem) => HttpResponse::Ok().finish(),
-                Err(_) => HttpResponse::InternalServerError().json("Yeah about that.."),
-            };
+
             self.ongoing_multi_part_uploads
                 .borrow_mut()
                 .retain(|item| !item.id.eq(&id));
