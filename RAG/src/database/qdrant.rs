@@ -2,7 +2,11 @@ use std::ops::Deref;
 
 use anyhow::Result;
 use qdrant_client::{
-    qdrant::{CreateCollectionBuilder, VectorsConfigBuilder},
+    config::QdrantConfig,
+    qdrant::{
+        vectors_config_diff::Config, CreateCollection, CreateCollectionBuilder, Distance,
+        VectorParams, VectorParamsBuilder, VectorsConfigBuilder,
+    },
     Qdrant,
 };
 
@@ -15,14 +19,14 @@ impl Deref for MQdrantClient {
     type Target = Qdrant;
 
     fn deref(&self) -> &Self::Target {
-        todo!()
+        &self.qdrant
     }
 }
 
 impl MQdrantClient {
     pub fn new() -> Result<MQdrantClient> {
         let endpoint = dotenv::var("QDRANT_ENDPOINT").unwrap();
-        let qdrant = Qdrant::from_url(&endpoint).build().unwrap();
+        let qdrant = QdrantConfig::from_url(&endpoint).build().unwrap();
         Ok(Self {
             qdrant,
             all_collections: vec![],
@@ -30,11 +34,18 @@ impl MQdrantClient {
     }
 
     pub async fn create_default_collection(&mut self, collection_name: String) -> Result<()> {
-        let collection = match self
+               let vector_size = 768;
+
+             let vec_params = VectorParamsBuilder::new(vector_size, Distance::Cosine).build();
+               let vectors_config = VectorsConfigBuilder::default()
+               .add_vector_params(vec_params)
+             .clone();
+
+        match self
             .qdrant
             .create_collection(
-                CreateCollectionBuilder::new(collection_name.clone())
-                    .vectors_config(VectorsConfigBuilder::default()),
+                CreateCollectionBuilder::new(&collection_name)
+                    .vectors_config(vectors_config)
             )
             .await
         {

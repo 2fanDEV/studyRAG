@@ -8,7 +8,11 @@ import getAltOrCmdKey from "./util/os";
 import useFetchAllDraggables, { useSaveDraggable } from "./api/draggable";
 import type { FileInformation } from "./types/app";
 import invariant from "tiny-invariant";
-import useUploadFileInformation, { useFetchFileInformations, useSaveFileInformation } from "./api/fileInformation";
+import useUploadFileInformation, {
+  useFetchFileInformations,
+  useSaveFileInformation,
+} from "./api/fileInformation";
+import useCreateEmbeddingsForId from "./api/embeddings";
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
@@ -18,8 +22,9 @@ function App() {
   const { fetchAllDraggables } = useFetchAllDraggables();
   const { saveFileInformation } = useSaveFileInformation();
   const { fetchFileInformations } = useFetchFileInformations();
-  const { uploadFile } = useUploadFileInformation(() => {}); 
-
+  const { uploadFile } = useUploadFileInformation(() => {});
+  const { createEmbeddings } = useCreateEmbeddingsForId();
+  
   useEffect(() => {
     const fetchAndCombineData = async () => {
       const draggables = (await fetchAllDraggables()) || [];
@@ -50,29 +55,31 @@ function App() {
 
   const handleUpload = async (item: RAGDraggableElement, file: File) => {
     try {
-    const uuid = await saveDraggable(item);
-    let updatedItem = {
-      id: uuid,
-      ...item,
-    };
-    await saveFileInformation(updatedItem);
-    await uploadFile(uuid!, file);
-    setDraggableElements((prev) => {
-      let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
-      let newName = item.name;
-      if (alreadyExistsIndex !== -1) {
-        let i = 0;
-        while (true) {
-          let appendix = " (" + i + ")";
-          if (prev.findIndex((p) => p.name === newName + appendix) === -1) {
-            newName += appendix;
-            break;
+      const uuid = await saveDraggable(item);
+      let updatedItem = {
+        id: uuid,
+        ...item,
+      };
+      await saveFileInformation(updatedItem);
+      setDraggableElements((prev) => {
+        let alreadyExistsIndex = prev.findIndex((p) => p.id === item.id);
+        let newName = item.name;
+        if (alreadyExistsIndex !== -1) {
+          let i = 0;
+          while (true) {
+            let appendix = " (" + i + ")";
+            if (prev.findIndex((p) => p.name === newName + appendix) === -1) {
+              newName += appendix;
+              break;
+            }
+            i++;
           }
-          i++;
         }
-      }
-      return [...prev, { ...updatedItem, name: newName }];
-    }); } catch(error) {
+        return [...prev, { ...updatedItem, name: newName }];
+      });
+      await uploadFile(file, uuid);
+      await createEmbeddings(uuid);
+    } catch (error) {
       console.log(error);
     }
   };

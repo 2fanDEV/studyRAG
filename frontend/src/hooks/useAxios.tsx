@@ -68,7 +68,8 @@ export default function useAxios<RQD, RSD>(props: AxiosParameter<RQD>){
         if(!options.file) {
           return ;
         }
-        const chunkSize = Math.pow(1024, 2) * 5; //5mb
+        const chunkSize = Math.pow(1024, 2);
+        console.log(chunkSize);
         const totalChunks = Math.ceil(options.file.size/chunkSize);
 
         for(let chunk = 0; chunk < totalChunks; chunk++) {

@@ -21,7 +21,8 @@ export default function useUploadFileInformation(
   );
 
   const uploadFile= useCallback(
-    (id: string, file: File) => {
+    (file: File, id?: string) => {
+      invariant(id, "At this point, id must not be undefined")
       return sendChunkedFileRequest(id, { file: file });
     },
     [sendChunkedFileRequest]

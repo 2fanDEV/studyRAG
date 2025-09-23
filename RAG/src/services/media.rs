@@ -6,9 +6,13 @@ use crate::{
     database::mongodb::MongoClient,
 };
 use actix_web::HttpResponse;
+use anyhow::{anyhow, Result};
 use bson::doc;
 use futures_util::io::AsyncWriteExt;
-use mongodb::{gridfs::GridFsBucket, options::GridFsBucketOptions, Collection};
+use mongodb::{
+    action::gridfs::OpenDownloadStream, gridfs::GridFsBucket, options::GridFsBucketOptions,
+    Collection,
+};
 use std::{cell::RefCell, sync::Arc};
 
 pub struct MultipartUploadInformation {
@@ -138,6 +142,20 @@ impl MediaService {
                 .retain(|item| !item.id.eq(&id));
         }
         result
+    }
+
+    pub async fn get_gridfs_file_by_id(&self, id: String) -> Result<OpenDownloadStream> {
+        let object_id = match self.media_bucket.find_one(doc! { "filename": id }).await {
+            Ok(file_collection) => match file_collection {
+                Some(collection) => Some(collection.id),
+                None => None,
+            },
+            Err(err) => None,
+        };
+        match object_id {
+            Some(id) => Ok(self.media_bucket.open_download_stream(id)),
+            None => Err(anyhow!("No object id found")),
+        }
     }
 
     fn get_bytes_of_multipart(&self, id: &str) -> Vec<u8> {
