@@ -1,6 +1,12 @@
 
 export type OS = "Windows" | "MacOS" | "Linux" | "Unknown";
 
+interface Key {
+  key: string,
+  shortcut: string
+  technical_id: string
+}
+
 export function getCurrentOS(): OS {
   const userAgent = window.navigator.userAgent;
 
@@ -16,12 +22,11 @@ export function getCurrentOS(): OS {
   return "Unknown";
 }
 
-export default function getAltOrCmdKey(): string {
+export default function getControlOrCommandKey(): Key {
   const os = getCurrentOS();
   if (os === "MacOS") {
- //   return "fa-solid fa-command";
-    return "cmd";
+    return { key: "Command", shortcut: "cmd", technical_id: "Meta"};
   }
-  return "alt";
+  return { key: "Control", shortcut: "Ctrl", technical_id: "Control" };
 }   
 

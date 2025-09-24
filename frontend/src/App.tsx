@@ -4,7 +4,7 @@ import FileSelectorButton from "./components/FileSelector";
 import DraggableElement, {
   type RAGDraggableElement,
 } from "./components/DraggableElement";
-import getAltOrCmdKey from "./util/os";
+import getControlOrCommandKey from "./util/os";
 import useFetchAllDraggables, { useSaveDraggable } from "./api/draggable";
 import type { FileInformation } from "./types/app";
 import invariant from "tiny-invariant";
@@ -14,6 +14,7 @@ import useUploadFileInformation, {
 } from "./api/fileInformation";
 import useCreateEmbeddingsForId from "./api/embeddings";
 import useKeyboardShortcut from "./hooks/useKeyboardShortcut";
+import QueryModal from "./components/QueryModal";
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
@@ -25,16 +26,6 @@ function App() {
   const { fetchFileInformations } = useFetchFileInformations();
   const { uploadFile } = useUploadFileInformation(() => {});
   const { createEmbeddings } = useCreateEmbeddingsForId();
-
-  const targetCombination = ["Meta", "k"];
-  const pressedKeys = useKeyboardShortcut(targetCombination);
-
-  useEffect(() => {
-      const hasCombination = targetCombination.every(key => pressedKeys.has(key));
-      if (hasCombination) {
-      }
-  }, [pressedKeys, targetCombination])
-
 
   useEffect(() => {
     const fetchAndCombineData = async () => {
@@ -96,6 +87,7 @@ function App() {
   };
   return (
     <div className="w-full h-full absolute bg-[#061319] -z-8">
+      <QueryModal></QueryModal>
       <div
         className="absolute inset-0 
     [background-image:radial-gradient(white_1px,transparent_1px)] 
@@ -104,7 +96,7 @@ function App() {
       ></div>
       <div className="flex gap-1 justify-end">
         <div className=" flex justify-center w-16 text-white self-center bg-transparent border-2 rounded-xl p-1 text-xs border-teal-400">
-          <p> {getAltOrCmdKey()} + K </p>
+          <p> {getControlOrCommandKey().shortcut} + K </p>
         </div>
         <div className="m-6">
           <FileSelectorButton name="Upload" onUpload={handleUpload} />
