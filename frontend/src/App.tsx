@@ -13,6 +13,7 @@ import useUploadFileInformation, {
   useSaveFileInformation,
 } from "./api/fileInformation";
 import useCreateEmbeddingsForId from "./api/embeddings";
+import useKeyboardShortcut from "./hooks/useKeyboardShortcut";
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
@@ -24,7 +25,17 @@ function App() {
   const { fetchFileInformations } = useFetchFileInformations();
   const { uploadFile } = useUploadFileInformation(() => {});
   const { createEmbeddings } = useCreateEmbeddingsForId();
-  
+
+  const targetCombination = ["Meta", "k"];
+  const pressedKeys = useKeyboardShortcut(targetCombination);
+
+  useEffect(() => {
+      const hasCombination = targetCombination.every(key => pressedKeys.has(key));
+      if (hasCombination) {
+      }
+  }, [pressedKeys, targetCombination])
+
+
   useEffect(() => {
     const fetchAndCombineData = async () => {
       const draggables = (await fetchAllDraggables()) || [];

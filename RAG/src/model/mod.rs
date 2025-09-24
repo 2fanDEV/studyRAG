@@ -12,6 +12,7 @@ where
     ResType: ResultMarker,
 {
     full_text: Vec<SingleMessage>,
+
     _data: PhantomData<ResType>,
 }
 

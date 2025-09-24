@@ -102,12 +102,11 @@ impl EmbeddableService {
             .unwrap();
 
         let mut point_embeddings = vec![];
-        let hashmap: HashMap<String, Value> = HashMap::new();
         for (index, vector) in embeddings.into_iter().enumerate() {
             point_embeddings.push(PointStruct::new(
                 PointId::from(uuid::Uuid::new().to_string()),
                 vector,
-                Payload::from(hashmap.clone())
+                Payload::try_from(json!({"mongo_db_id": mongo_db_id})).unwrap(),
             ));
         }
         point_embeddings
