@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 import getControlOrCommandKey from "../util/os";
+import AutoExpandingTextArea from "./AutoExpandingTextArea";
 
 export default function QueryModal(props: any) {
   const osKey = getControlOrCommandKey();
@@ -31,10 +32,13 @@ export default function QueryModal(props: any) {
     }
   }, [pressedKeys, showModalCombination]);
 
-  let dialog = <div className="text-white"> 1 </div>;
+  let dialog = <div className="text-white"> </div>;
   if (showModal) {
-    dialog = <div className="text-white"> 
-    <input type="text" /> </div>;
+    dialog = (
+      <div className="flex justify-center items-center text-white bg-transparent absolute w-full h-full ">
+        <AutoExpandingTextArea></AutoExpandingTextArea>
+      </div>
+    );
   }
 
   return dialog;

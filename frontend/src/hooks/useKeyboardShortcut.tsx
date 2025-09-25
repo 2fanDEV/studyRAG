@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 
 type KeySet = Set<string>;
 
-export default function useKeyboardShortcut(targetKeys: string[], closeTargetKeys: string[]) {
+export default function useKeyboardShortcut(
+  targetKeys: string[],
+  closeTargetKeys: string[]
+) {
   const [keys, setKeys] = useState<KeySet>(new Set());
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -12,7 +15,7 @@ export default function useKeyboardShortcut(targetKeys: string[], closeTargetKey
       }
 
       if (closeTargetKeys.includes(event.key)) {
-        setKeys((prev) => new Set<string>([event.key]))
+        setKeys((prev) => new Set<string>([event.key]));
       }
     },
     [targetKeys]
@@ -29,7 +32,7 @@ export default function useKeyboardShortcut(targetKeys: string[], closeTargetKey
       }
 
       if (closeTargetKeys.includes(event.key)) {
-        setKeys((prev) => new Set())
+        setKeys((prev) => new Set());
       }
     },
     [targetKeys]
