@@ -1,31 +1,34 @@
-use std::{cell::RefCell, collections::HashMap, sync::Arc};
+use std::{cell::RefCell, collections::HashMap, marker::PhantomData, sync::Arc};
 
 use actix::{Addr, SyncArbiter};
 use actix_web::HttpResponse;
 use anyhow::{anyhow, Result};
 use bson::uuid;
+use log::debug;
 use lopdf::Document;
 use mongodb::Collection;
 use qdrant_client::{
-    qdrant::{
-        CollectionExistsRequest, PointId, PointStruct,
-        UpsertPointsBuilder, Value
-    },
+    qdrant::{CollectionExistsRequest, PointId, PointStruct, QueryPointsBuilder, UpsertPointsBuilder, Value},
     Payload,
 };
 use serde_json::json;
 
 use crate::{
-    collection_values::media::Media,
+    collection_values::media::{Media, MediaInformation},
     database::{mongodb::MongoClient, qdrant::MQdrantClient},
+    endpoints::query::QueryRequest,
     model::{
         bert_actors::{
             bert_models::{KeywordExtractionModel, VectorEmbeddingModel},
             EmbeddingActor, ExtractionActor,
         },
-        split_by_context_size,
+        split_by_context_size, BertRequest, SingleMessage,
     },
+    services::element::DraggableElement,
 };
+
+
+const DOCUMENT_EMBEDDINGS: &'static str = "document_embeddings";
 
 pub struct EmbeddableService {
     qdrant: RefCell<MQdrantClient>,
@@ -67,7 +70,7 @@ impl EmbeddableService {
             true => {}
             false => {
                 mut_qdrant
-                    .create_default_collection("document_embeddings".to_string())
+                    .create_default_collection(DOCUMENT_EMBEDDINGS.to_string())
                     .await
                     .unwrap();
             }
@@ -93,7 +96,36 @@ impl EmbeddableService {
         Ok(res)
     }
 
-    async fn calculate_embeddings_from_text(&self, mongo_db_id: String, text: String) -> Vec<PointStruct> {
+    pub async fn execute_query(
+        &self,
+        query: QueryRequest,
+    ) -> HttpResponse {
+        let query_embeddings = self
+            .vector_embedding_actor
+            .send(BertRequest {
+                full_text: vec![SingleMessage {
+                    text: query.text,
+                    amount_words: 0,
+                }],
+                _data: PhantomData,
+            })
+            .await
+            .unwrap();
+        
+        debug!("VECTOR={:?}", query_embeddings);
+        let query1 = self.qdrant.borrow().query(QueryPointsBuilder::new(DOCUMENT_EMBEDDINGS).with_payload(true)
+            .query(query_embeddings[0].clone())).await.unwrap();
+        debug!("{:?}", query1);
+        let x = query1.result.iter().map(|point| (point.payload.clone())).collect::<Vec<_>>();
+    
+        HttpResponse::Ok().json(x)
+    }
+
+    async fn calculate_embeddings_from_text(
+        &self,
+        mongo_db_id: String,
+        text: String,
+    ) -> Vec<PointStruct> {
         let formatted_text = split_by_context_size::<Vec<Vec<f32>>>(text, 100, 8);
         let embeddings = self
             .vector_embedding_actor

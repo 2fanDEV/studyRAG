@@ -13,7 +13,7 @@ pub struct IdQuery {
     id: String
 }
 
-#[post("/create_embedding")]
+#[post("create_embedding")]
 pub async fn process_embeddings(
     id: Query<IdQuery>,
     embeddings_service: Data<EmbeddableService>,

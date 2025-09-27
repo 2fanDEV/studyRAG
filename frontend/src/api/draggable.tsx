@@ -7,10 +7,6 @@ export default function useFetchAllDraggables() {
   const { sendRequest, ...misc } = useAxios<void, Draggable[]>({
     url: import.meta.env.VITE_API + "/draggable/all/0",
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
   });
 
   const fetchAllDraggables = useCallback(() => {
@@ -23,10 +19,7 @@ export function useSaveDraggable() {
   const { sendRequest, data, ...misc } = useAxios<Draggable, string>({
     url: import.meta.env.VITE_API + "/draggable/save",
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
+ 
   });
 
   const saveDraggable = useCallback(

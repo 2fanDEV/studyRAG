@@ -95,8 +95,8 @@ function App() {
     opacity-30 -z-1"
       ></div>
       <div className="flex gap-1 justify-end">
-        <div className=" flex justify-center w-16 text-white self-center bg-transparent border-2 rounded-xl p-1 text-xs border-teal-400">
-          <p> {getControlOrCommandKey().shortcut} + K </p>
+        <div className=" flex justify-center w-10 text-white self-center bg-transparent border-1 rounded-xl p-0.5 text-xs border-teal-400">
+           <p className="mt-0.5"> {getControlOrCommandKey().icon()} </p>K
         </div>
         <div className="m-6">
           <FileSelectorButton name="Upload" onUpload={handleUpload} />

@@ -1,5 +1,6 @@
 import { useRef, type ChangeEvent } from "react";
 import type { RAGDraggableElement } from "./DraggableElement";
+import { FaPlus } from "react-icons/fa";
 type SelectorProps = {
   name: string;
   onUpload: (element: RAGDraggableElement, file: File) => void;
@@ -36,7 +37,7 @@ export default function FileSelectorButton(props: SelectorProps) {
 	        hover:bg-[#23759b] rounded-full text-xs w-7 h-7 cursor-pointer"
         onClick={handleClick}
       >
-        <a className="fa-solid fa-plus"></a>
+        <FaPlus className="ml-1.5"/>
       </button>
       <input
         type="file"

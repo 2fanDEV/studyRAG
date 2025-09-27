@@ -18,5 +18,13 @@ pub struct Count {
     pub count: u64
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Token(pub String);
 
+impl Deref for Token {
+    type Target = String;
 
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}

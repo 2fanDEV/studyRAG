@@ -1,27 +1,59 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
-export default function AutoExpandingTextArea(props: any) {
-  const textAreaRef = useRef(null);
+export interface TextAreaProps {
+  inputCallback: (input: string) => void;
+}
 
-    const adjustHeight = () => {
-        if(textAreaRef.current) {
-            textAreaRef.current.style.height = "auto";
-        }
+export default function AutoExpandingTextArea(props: TextAreaProps) {
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const closeInputShortcut = ["Shift", "Enter"];
+  const { pressedKeys, clearKeys } = useKeyboardShortcut(
+    closeInputShortcut,
+    [],
+    false
+  );
+
+  const adjustHeight = () => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto";
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    if (closeInputShortcut.every((key) => pressedKeys.has(key))) {
+      if (textAreaRef.current) {
+        props.inputCallback(textAreaRef.current.value);
+        clearKeys();
+      }
     }
 
+    adjustHeight();
+  }, [pressedKeys, closeInputShortcut]);
+
+  const handleChange = (e: any) => {
+    adjustHeight();
+  };
 
   return (
     <div
-    ref={textAreaRef}
       className="text-white 
     rounded-2xl 
-    absolute
-    p-9 
-    backdrop-blur-xxs 
-    border-white bg-[linear-gradient(to_top,#008080,transparent)]"
+    p-4
+    w-md
+    drop-shadow-white
+    drop-shadow-xs
+    mr-5
+    animate-fadeIn0_20
+    border-white bg-[linear-gradient(to_top,#00808077,transparent)]
+    backdrop-blur-[1px]"
     >
       <textarea
-        className="text-xs resize-none"
+        ref={textAreaRef}
+        onChange={handleChange}
+        autoFocus
+        className="focus:outline-none text-xs w-full resize-none"
         placeholder="Place your query here"
       />
     </div>

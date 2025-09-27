@@ -2,6 +2,9 @@ use std::marker::PhantomData;
 
 use actix::Message;
 use rust_bert::pipelines::keywords_extraction::Keyword;
+use tokenizers::{Result, Tokenizer};
+
+use crate::boxed_values::Token;
 
 pub mod bert_actors;
 
@@ -11,9 +14,9 @@ pub struct BertRequest<ResType>
 where
     ResType: ResultMarker,
 {
-    full_text: Vec<SingleMessage>,
+    pub full_text: Vec<SingleMessage>,
 
-    _data: PhantomData<ResType>,
+    pub _data: PhantomData<ResType>,
 }
 
 impl ResultMarker for Vec<Vec<f32>> {}
@@ -95,11 +98,87 @@ where
     }
 }
 
+pub fn chunk_tokens_by_ctx_size(tokens: Vec<Token>, chunk_size: usize) -> Vec<Vec<Token>> {
+    let percentage_of_previous_chunk = 0.2 as f32;
+    let mut chunked_tokens = tokens
+        .chunks(chunk_size)
+        .map(|slice| slice.to_vec())
+        .collect::<Vec<_>>();
+    for (index, chunk) in chunked_tokens.clone().into_iter().enumerate() {
+        let mut previous_chunk = match chunked_tokens.get(index - 1) {
+            Some(chunk) => {
+                percentage_from_end_of_chunk(chunk.to_vec(), percentage_of_previous_chunk)
+            }
+            None => continue,
+        };
+        previous_chunk.extend_from_slice(&chunk);
+        chunked_tokens[index] = previous_chunk;
+    }
+    chunked_tokens
+}
+
+pub fn percentage_from_end_of_chunk(chunk: Vec<Token>, percentage: f32) -> Vec<Token> {
+    let index_of_percentage = ((chunk.len() as f32) * percentage) as usize;
+    chunk[index_of_percentage..chunk.len() - 1].to_vec()
+}
+
+pub fn tokenize_text(full_text: &str) -> Result<Vec<Token>> {
+    let tokenizer = Tokenizer::from_pretrained("bert-base-uncased", None)?;
+    let encoding = tokenizer.encode(full_text, false)?;
+    let tokens = encoding
+        .get_tokens()
+        .into_iter()
+        .map(|text| Token(text.to_string()))
+        .collect::<Vec<_>>();
+    Ok(tokens)
+}
+
 mod tests {
 
     #[cfg(test)]
     mod tests {
+        use crate::boxed_values::Token;
+        use crate::model::percentage_from_end_of_chunk;
         use crate::model::split_by_context_size;
+        use crate::model::tokenize_text;
+
+        #[test]
+        fn percentage_from_end_of_chunk_test() {
+            let tokens = ["1", "2", "3", "4", "5"]
+                .map(|elem| Token(elem.to_string()))
+                .into_iter()
+                .collect::<Vec<_>>();
+            let expected_tokens1 = ["4", "5"]
+                .map(|elem| Token(elem.to_string()))
+                .into_iter()
+                .collect::<Vec<_>>();
+            let expected_tokens2 = ["3", "4", "5"]
+                .map(|elem| Token(elem.to_string()))
+                .into_iter()
+                .collect::<Vec<_>>();
+            let expected_tokens3 = ["2", "3", "4", "5"]
+                .map(|elem| Token(elem.to_string()))
+                .into_iter()
+                .collect::<Vec<_>>();
+            let expected_tokens4 = ["1", "2", "3", "4", "5"]
+                .map(|elem| Token(elem.to_string()))
+                .into_iter()
+                .collect::<Vec<_>>();
+            assert_eq!(percentage_from_end_of_chunk(tokens, 0.2), expected_tokens1);
+        }
+
+        #[test]
+        fn tokenize_text_tes() {
+            let full_text = "Hey, this text is going to be tokenized";
+            let tokenized_text = tokenize_text(full_text).unwrap();
+            let expected_tokens = [
+                "hey", ",", "this", "text", "is", "going", "to", "be", "token", "##ized",
+            ]
+            .into_iter()
+            .map(|elem| Token(elem.to_string()))
+            .collect::<Vec<Token>>();
+            assert_eq!(tokenized_text, expected_tokens);
+        }
 
         #[test]
         fn split_by_context_size_test() {

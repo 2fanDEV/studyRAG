@@ -13,7 +13,7 @@ use RAG::{
     endpoints::{
         element::{get_all_draggable, get_all_draggable_count, save_draggable},
         embeddings::process_embeddings,
-        media_information::{get_file_information_by_ids, save_media_information, upload_media},
+        media_information::{get_file_information_by_ids, save_media_information, upload_media}, query::send_query,
     },
     services::{element::ElementService, embeddable::EmbeddableService, media::MediaService},
 };
@@ -52,6 +52,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_all_draggable_count)
             .service(get_file_information_by_ids)
             .service(process_embeddings)
+            .service(send_query)
     })
     .bind(("127.0.0.1", 8080))?
     .workers(1)
