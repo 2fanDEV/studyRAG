@@ -1,5 +1,5 @@
 pub mod services;
-pub mod model;
+pub mod embedding;
 pub mod util;
 pub mod database; 
 pub mod collection_values;

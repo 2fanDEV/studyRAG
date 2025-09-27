@@ -30,3 +30,4 @@ serde_qs = { version = "0.15.0", features = ["actix4"]}
 lopdf = "0.38.0"
 serde_json = "1.0.145"
 tokenizers = { version = "0.22.1", features=["http"]}
+text-splitter = { version = "0.28.0", features=["tokenizers"] }

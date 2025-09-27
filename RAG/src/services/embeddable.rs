@@ -8,30 +8,32 @@ use log::debug;
 use lopdf::Document;
 use mongodb::Collection;
 use qdrant_client::{
-    qdrant::{CollectionExistsRequest, PointId, PointStruct, QueryPointsBuilder, UpsertPointsBuilder, Value},
+    qdrant::{
+        CollectionExistsRequest, PointId, PointStruct, QueryPointsBuilder, UpsertPointsBuilder,
+        Value,
+    },
     Payload,
 };
 use serde_json::json;
+use tokenizers::Result;
 
 use crate::{
     collection_values::media::{Media, MediaInformation},
     database::{mongodb::MongoClient, qdrant::MQdrantClient},
-    endpoints::query::QueryRequest,
-    model::{
+    embedding::{
         bert_actors::{
             bert_models::{KeywordExtractionModel, VectorEmbeddingModel},
             EmbeddingActor, ExtractionActor,
-        },
-        split_by_context_size, BertRequest, SingleMessage,
+        }, processer::{TextProcessor, TokenAndText}, BertMessage, BertRequest, Message
     },
-    services::element::DraggableElement,
+    endpoints::query::QueryRequest,
 };
-
 
 const DOCUMENT_EMBEDDINGS: &'static str = "document_embeddings";
 
 pub struct EmbeddableService {
     qdrant: RefCell<MQdrantClient>,
+    text_processor: TextProcessor,
     vector_embedding_actor: Addr<EmbeddingActor>,
     media_collection: Collection<Media>,
     keyword_actor: Addr<ExtractionActor>,
@@ -45,11 +47,12 @@ impl EmbeddableService {
         let extracting_actor = SyncArbiter::start(1, || {
             ExtractionActor::new(Box::new(KeywordExtractionModel::new().unwrap()))
         });
-
+        let chunk_size = 512;
         Self {
             qdrant,
             media_collection: mongo_client.database("RAG").collection("media"),
             vector_embedding_actor: embedding_actor,
+            text_processor: TextProcessor::new(chunk_size).unwrap(),
             keyword_actor: extracting_actor,
         }
     }
@@ -82,7 +85,7 @@ impl EmbeddableService {
             .map(|page| *page.0)
             .collect::<Vec<_>>();
         let text = document.extract_text(&pages).unwrap();
-        let point_embeddings = self.calculate_embeddings_from_text(mongo_db_id, text).await;
+        let point_embeddings = self.create_embedded_text(mongo_db_id, text).await.unwrap();
         let res = match mut_qdrant
             .upsert_points(UpsertPointsBuilder::new(
                 "document_embeddings",
@@ -96,51 +99,56 @@ impl EmbeddableService {
         Ok(res)
     }
 
-    pub async fn execute_query(
-        &self,
-        query: QueryRequest,
-    ) -> HttpResponse {
+    pub async fn execute_query(&self, query: QueryRequest) -> HttpResponse {
         let query_embeddings = self
             .vector_embedding_actor
             .send(BertRequest {
-                full_text: vec![SingleMessage {
+                text: vec![BertMessage {
                     text: query.text,
-                    amount_words: 0,
                 }],
                 _data: PhantomData,
             })
             .await
             .unwrap();
-        
+
         debug!("VECTOR={:?}", query_embeddings);
-        let query1 = self.qdrant.borrow().query(QueryPointsBuilder::new(DOCUMENT_EMBEDDINGS).with_payload(true)
-            .query(query_embeddings[0].clone())).await.unwrap();
+        let query1 = self
+            .qdrant
+            .borrow()
+            .query(
+                QueryPointsBuilder::new(DOCUMENT_EMBEDDINGS)
+                    .with_payload(true)
+                    .query(query_embeddings[0].clone()),
+            )
+            .await
+            .unwrap();
         debug!("{:?}", query1);
-        let x = query1.result.iter().map(|point| (point.payload.clone())).collect::<Vec<_>>();
-    
+        let x = query1
+            .result
+            .iter()
+            .map(|point| (point.payload.clone()))
+            .collect::<Vec<_>>();
+
         HttpResponse::Ok().json(x)
     }
 
-    async fn calculate_embeddings_from_text(
+    async fn create_embedded_text(
         &self,
         mongo_db_id: String,
         text: String,
-    ) -> Vec<PointStruct> {
-        let formatted_text = split_by_context_size::<Vec<Vec<f32>>>(text, 100, 8);
-        let embeddings = self
-            .vector_embedding_actor
-            .send(formatted_text)
-            .await
-            .unwrap();
-
+    ) -> tokenizers::Result<Vec<PointStruct>> {
         let mut point_embeddings = vec![];
-        for (index, vector) in embeddings.into_iter().enumerate() {
+        let token_and_texts: Vec<TokenAndText> = self.text_processor.process(&text)?;
+               
+        for (index, (text, tokens)) in token_and_texts.into_iter().enumerate() {
+
             point_embeddings.push(PointStruct::new(
                 PointId::from(uuid::Uuid::new().to_string()),
-                vector,
+                tokens,
                 Payload::try_from(json!({"mongo_db_id": mongo_db_id})).unwrap(),
             ));
         }
-        point_embeddings
+        point_embeddings */
+        vec![]
     }
 }

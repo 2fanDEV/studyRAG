@@ -4,7 +4,7 @@ use rust_bert::pipelines::{
     sentence_embeddings::{SentenceEmbeddingsBuilder, SentenceEmbeddingsModel},
 };
 
-use crate::model::{bert_actors::EmbeddingModel, EmbeddingMessagesRequest, ExtractionModel};
+use crate::embedding::{bert_actors::EmbeddingModel, EmbeddingMessagesRequest, ExtractionModel};
 
 pub struct VectorEmbeddingModel {
     model: SentenceEmbeddingsModel,
@@ -12,7 +12,7 @@ pub struct VectorEmbeddingModel {
 
 impl EmbeddingModel for VectorEmbeddingModel {
     fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>> {
-        let encode = self.model.encode(&msg.full_text).unwrap();
+        let encode = self.model.encode(&msg.text).unwrap();
         encode
     }
 }
@@ -34,7 +34,7 @@ pub struct KeywordExtractionModel {
 impl ExtractionModel for KeywordExtractionModel {
     fn process(
         &self,
-        msg: crate::model::ExtractionMessageRequest,
+        msg: crate::embedding::ExtractionMessageRequest,
     ) -> Vec<Vec<rust_bert::pipelines::keywords_extraction::Keyword>> {
         let keywords = self.model.predict(&msg.full_text).unwrap();
         keywords

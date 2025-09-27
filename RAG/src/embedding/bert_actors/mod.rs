@@ -1,7 +1,7 @@
 use actix::{Actor, Handler, SyncContext};
 use rust_bert::pipelines::keywords_extraction::Keyword;
 
-use crate::model::{
+use crate::embedding::{
     EmbeddingMessagesRequest, EmbeddingModel, ExtractionMessageRequest, ExtractionModel,
 };
 
