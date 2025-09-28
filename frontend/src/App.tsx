@@ -13,8 +13,9 @@ import useUploadFileInformation, {
   useSaveFileInformation,
 } from "./api/fileInformation";
 import useCreateEmbeddingsForId from "./api/embeddings";
-import useKeyboardShortcut from "./hooks/useKeyboardShortcut";
 import QueryModal from "./components/QueryModal";
+import LoginButton from "./components/LoginButton";
+
 
 function App() {
   const [draggableElements, setDraggableElements] = useState<
@@ -85,21 +86,23 @@ function App() {
       console.log(error);
     }
   };
+
+
   return (
-    <div className="w-full h-full absolute bg-[#061319] -z-8">
+    <div className="w-full h-screen bg-[#01131a]
+       [background-image:radial-gradient(white_0.75px,transparent_0.5px)] 
+    [background-size:2.5rem_2.5rem] opacity-100 
+    ">
       <QueryModal></QueryModal>
-      <div
-        className="absolute inset-0 
-    [background-image:radial-gradient(white_1px,transparent_1px)] 
-    [background-size:25px_25px]
-    opacity-30 -z-1"
-      ></div>
-      <div className="flex gap-1 justify-end">
-        <div className=" flex justify-center w-10 text-white self-center bg-transparent border-1 rounded-xl p-0.5 text-xs border-teal-400">
-           <p className="mt-0.5"> {getControlOrCommandKey().icon()} </p>K
+      <div className="flex gap-0.5 justify-end">
+        <div className="flex header-element items-center justify-center w-12 text-white self-center bg-transparent border-1 rounded-xl text-xs border-teal-400">
+          <p> {getControlOrCommandKey().icon()} </p>K
         </div>
         <div className="m-6">
           <FileSelectorButton name="Upload" onUpload={handleUpload} />
+        </div>
+        <div className="mt-6 mr-4">
+          <LoginButton></LoginButton>
         </div>
       </div>
 
@@ -123,9 +126,8 @@ function App() {
             });
           }}
         >
-          {Object.entries(draggableElements).map(([, element]) => {
-            let id = element.id;
-            return <DraggableElement {...element} />;
+          {Object.entries(draggableElements).map(([_, element]) => {
+            return <DraggableElement key={element.id} {...element} />;
           })}
         </DndContext>
       </div>

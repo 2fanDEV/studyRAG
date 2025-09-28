@@ -1,4 +1,5 @@
 use actix::{Actor, Handler, SyncContext};
+use log::debug;
 use rust_bert::pipelines::keywords_extraction::Keyword;
 
 use crate::embedding::{
@@ -14,7 +15,10 @@ pub struct EmbeddingActor {
 impl Handler<EmbeddingMessagesRequest> for EmbeddingActor {
     type Result = Vec<Vec<f32>>;
     fn handle(&mut self, msg: EmbeddingMessagesRequest, ctx: &mut Self::Context) -> Self::Result {
-        self.model.process(msg)
+        debug!("{:?}", msg);
+        let res = self.model.process(msg);
+        debug!("res_len={:?}", res.len());
+        res
     }
 }
 

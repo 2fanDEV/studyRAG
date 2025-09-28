@@ -36,7 +36,7 @@ impl ExtractionModel for KeywordExtractionModel {
         &self,
         msg: crate::embedding::ExtractionMessageRequest,
     ) -> Vec<Vec<rust_bert::pipelines::keywords_extraction::Keyword>> {
-        let keywords = self.model.predict(&msg.full_text).unwrap();
+        let keywords = self.model.predict(&msg.text).unwrap();
         keywords
     }
 }

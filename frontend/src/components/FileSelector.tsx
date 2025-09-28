@@ -31,13 +31,13 @@ export default function FileSelectorButton(props: SelectorProps) {
   return (
     <div className="">
       <button
-        className="bg-[#319cce] text-white font-bold
+        className="bg-teal-400 text-white font-bold
           	border-transparent hover:border-teal-400 border-2
 	         	transition-colors ease-in-out duration-500
-	        hover:bg-[#23759b] rounded-full text-xs w-7 h-7 cursor-pointer"
+	        hover:bg-black rounded-full text-xs w-7 h-7 cursor-pointer"
         onClick={handleClick}
       >
-        <FaPlus className="ml-1.5"/>
+      <FaPlus className="ml-1.5"/>
       </button>
       <input
         type="file"

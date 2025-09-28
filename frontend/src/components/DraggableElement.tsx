@@ -9,7 +9,7 @@ export type RAGDraggableElement = Omit<Draggable & FileInformation, 'id'> & {
 
 export default function DraggableElement(props: RAGDraggableElement) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: props.id || "",
+    id: props.id || "" ,
   });
 
   const finalTransform = {

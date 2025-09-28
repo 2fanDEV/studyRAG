@@ -9,6 +9,7 @@ pub mod processer;
 
 pub trait ResultMarker {}
 
+#[derive(Debug)]
 pub struct BertRequest<ResType>
 where
     ResType: ResultMarker,

@@ -1,4 +1,5 @@
 export type OS = "Windows" | "MacOS" | "Linux" | "Unknown";
+import { ChevronUp, Command } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
 import {
@@ -35,13 +36,23 @@ export default function getControlOrCommandKey(): Key {
       shortcut: "cmd",
       technical_id: "Meta",
       icon: () =>
-          React.createElement(MdOutlineKeyboardCommandKey, null)
+          React.createElement(Command, {
+          size: 11.5,
+          style: {
+            marginTop: "1px"
+          }
+    })
   }
 }
   return {
     key: "Control",
     shortcut: "Ctrl",
     technical_id: "Control",
-    icon: () => React.createElement(MdKeyboardControlKey, null),
+    icon: () => React.createElement(ChevronUp, {
+          size: 11.5,
+          style: {
+            marginTop: "1px"
+          }
+    }),
   };
 }

@@ -42,11 +42,10 @@ export default function QueryModal(props: any) {
   }, [pressedKeys, showModalCombination]);
 
   const inputCallback = async (input: string) => {
-
     await sendQuery({ text: input });
     setShowModal((prev) => {
       return false;
-    }); 
+    });
   };
 
   let dialog = <div className="text-white"> </div>;
