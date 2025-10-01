@@ -1,19 +1,15 @@
-use std::{cell::RefCell, sync::Arc};
+use std::{cell::RefCell, fmt::Pointer, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::{
-    http,
-    middleware::Logger,
-    web::{Data, PayloadConfig},
-    App, HttpServer,
+    dev::Service, http, middleware::Logger, web::{Data, PayloadConfig}, App, HttpServer
 };
+use log::debug;
 use serde_qs::{actix::QsQueryConfig, Config};
 use RAG::{
     database::{mongodb::MongoClient, qdrant::MQdrantClient},
     endpoints::{
-        element::{get_all_draggable, get_all_draggable_count, save_draggable},
-        embeddings::process_embeddings,
-        media_information::{get_file_information_by_ids, save_media_information, upload_media}, query::send_query,
+        auth::exchange_token, element::{get_all_draggable, get_all_draggable_count, save_draggable}, embeddings::process_embeddings, media_information::{get_file_information_by_ids, save_media_information, upload_media}, query::send_query
     },
     services::{element::ElementService, embeddable::EmbeddableService, media::MediaService},
 };
@@ -53,6 +49,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_file_information_by_ids)
             .service(process_embeddings)
             .service(send_query)
+            .service(exchange_token)
     })
     .bind(("127.0.0.1", 8080))?
     .workers(1)

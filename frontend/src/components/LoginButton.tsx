@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -11,18 +12,29 @@ import {
 } from "./ui/dialog";
 import { DialogOverlay } from "@radix-ui/react-dialog";
 import { Github } from "lucide-react";
+import useTokenExchange from "@/api/auth";
 
-export default function LoginButton(
-) {
+export default function LoginButton() {
+  console.log(import.meta.env);
+  const { exchangeToken } = useTokenExchange();
 
-
+  useEffect(() => {
+    const exchange = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
+      if (code) {
+        let token = await exchangeToken(code);
+      }
+      window.history.replaceState("", document.title, window.location.origin);
+    };
+    exchange();
+  }, []);
 
   const loginButton = (
     <Dialog>
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          
           className="
           header-element 
            rounded-2xl cursor-pointer"
@@ -39,15 +51,21 @@ export default function LoginButton(
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col-reverse justify-center items-center">
-         <a href=""> <Button
-            variant="outline"
-            className="bg-[#032938] text-white cursor-pointer"
+          <a
+            href={
+              import.meta.env.VITE_GITHUB_AUTH_BASE +
+              import.meta.env.VITE_GITHUB_CLIENT_ID
+            }
           >
-            <div>
-              <Github />
-            </div>
-            GitHub
-          </Button>
+            <Button
+              variant="outline"
+              className="bg-[#032938] text-white cursor-pointer"
+            >
+              <div>
+                <Github />
+              </div>
+              GitHub
+            </Button>
           </a>
         </div>
         <DialogFooter>

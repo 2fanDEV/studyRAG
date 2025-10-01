@@ -1,7 +1,7 @@
-use std::{cell::RefCell, collections::HashMap, marker::PhantomData, sync::Arc};
+use std::{cell::RefCell, marker::PhantomData, sync::Arc};
 
 use actix::{Addr, SyncArbiter};
-use actix_web::HttpResponse;
+use actix_web::{HttpRequest, HttpResponse};
 use anyhow::{anyhow, Result};
 use bson::uuid;
 use log::debug;
@@ -80,12 +80,8 @@ impl EmbeddableService {
             }
         };
 
-        let pages = document
-            .get_pages()
-            .iter()
-            .map(|page| *page.0)
-            .collect::<Vec<_>>();
-        let text = document.extract_text(&pages).unwrap();
+        let pages = document.get_pages().into_iter().map(|n| n.0).collect::<Vec<_>>();
+        let text = document.extract_text(&pages).unwrap().replace("\n", " ");
         let point_embeddings = self
             .create_embedded_point_structs(mongo_db_id, text)
             .await
@@ -122,7 +118,7 @@ impl EmbeddableService {
     ) -> tokenizers::Result<Vec<QueryPoints>> {
         let mut point_embeddings: Vec<QueryPoints> = vec![];
         let chunked_text = self.text_processor.process(&text)?;
-       for (index, text) in chunked_text.into_iter().enumerate() {
+        for (index, text) in chunked_text.into_iter().enumerate() {
             let embedding = self
                 .vector_embedding_actor
                 .send(BertRequest {
