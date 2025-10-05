@@ -5,6 +5,7 @@ use rust_bert::pipelines::keywords_extraction::Keyword;
 
 
 pub mod processer;
+pub mod sparse;
 pub mod embedding_actors;
 
 pub trait ResultMarker {}
@@ -43,7 +44,7 @@ impl AsRef<Vec<String>> for EmbeddingMessage {
 }
 
 pub trait EmbeddingModel {
-    async fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>>;
+    fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>>;
 }
 
 pub trait ExtractionModel {

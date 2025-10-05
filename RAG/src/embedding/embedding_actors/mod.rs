@@ -1,29 +1,52 @@
+use std::future::{self, ready, Ready};
+
 use actix::{Actor, Handler, SyncContext};
-use log::debug;
-use rust_bert::pipelines::keywords_extraction::Keyword;
+use rust_bert::pipelines::{
+    keywords_extraction::Keyword, sentence_embeddings::SentenceEmbeddingsModelType,
+};
 
 use crate::embedding::{
+    embedding_actors::embedding_models::{DenseEmbeddingModel},
     EmbeddingMessagesRequest, EmbeddingModel, ExtractionMessageRequest, ExtractionModel,
 };
 
 pub mod embedding_models;
 
+pub enum SpecifiedModelType {
+    DENSE(SentenceEmbeddingsModelType),
+}
+
+pub enum SpecifiedEmbeddingModel {
+    Dense(DenseEmbeddingModel),
+}
+
 pub struct EmbeddingActor {
-    model: Box<dyn EmbeddingModel>,
+    model: SpecifiedEmbeddingModel,
 }
 
 impl Handler<EmbeddingMessagesRequest> for EmbeddingActor {
     type Result = Vec<Vec<f32>>;
     fn handle(&mut self, msg: EmbeddingMessagesRequest, ctx: &mut Self::Context) -> Self::Result {
-        let res = self.model.process(msg);
-        debug!("res_len={:?}", res.len());
-        res
+        self.process(msg)
     }
 }
 
 impl EmbeddingActor {
-    pub fn new(model: Box<dyn EmbeddingModel>) -> Self {
+    pub fn new(identifier: SpecifiedModelType) -> Self {
+        let model = match identifier {
+            SpecifiedModelType::DENSE(model_type) => {
+                SpecifiedEmbeddingModel::Dense(DenseEmbeddingModel::new(model_type).unwrap())
+            }
+        };
         Self { model }
+    }
+
+    pub fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>> {
+        match &self.model {
+            SpecifiedEmbeddingModel::Dense(dense_embedding_model) => {
+                dense_embedding_model.process(msg)
+            }
+        }
     }
 }
 

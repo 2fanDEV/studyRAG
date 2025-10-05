@@ -54,9 +54,6 @@ mod TextProcesserUtil {
 
     #[cfg(test)]
     mod tests {
-        use crate::embedding::processer::TextProcesserUtil::percentage_from_start_of_string;
-
-
         #[test]
         fn percentage_from_start_of_chunk_test() {
         }
