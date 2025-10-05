@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use actix_web::HttpResponse;
 use bson::{Document, Uuid, doc};
-use log::debug;
 use mongodb::Collection;
 use serde::{Deserialize, Serialize};
 

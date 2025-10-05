@@ -1,6 +1,7 @@
+use anyhow::Result;
 use log::debug;
 use text_splitter::{ChunkConfig, ChunkSizer, TextSplitter};
-use tokenizers::{Result, Tokenizer};
+use tokenizers::Tokenizer;
 
 use crate::{
     embedding::processer::TextProcesserUtil::percentage_from_start_of_string,
@@ -9,15 +10,13 @@ use crate::{
 
 #[derive(Debug)]
 pub struct TextProcessor {
-    tokenizer: Tokenizer,
     splitter: TextSplitter<Tokenizer>,
 }
 
 impl TextProcessor {
     pub fn new(chunk_size: usize) -> Result<Self> {
-        let tokenizer = Tokenizer::from_pretrained("bert-base-uncased", None)?;
+        let tokenizer = Tokenizer::from_pretrained("bert-base-uncased", None).unwrap();
         Ok(TextProcessor {
-            tokenizer: tokenizer.clone(),
             splitter: TextSplitter::new(ChunkConfig::new(chunk_size).with_sizer(tokenizer)),
         })
     }

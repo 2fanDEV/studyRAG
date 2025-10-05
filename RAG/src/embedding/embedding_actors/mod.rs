@@ -6,7 +6,7 @@ use crate::embedding::{
     EmbeddingMessagesRequest, EmbeddingModel, ExtractionMessageRequest, ExtractionModel,
 };
 
-pub mod bert_models;
+pub mod embedding_models;
 
 pub struct EmbeddingActor {
     model: Box<dyn EmbeddingModel>,
@@ -15,7 +15,6 @@ pub struct EmbeddingActor {
 impl Handler<EmbeddingMessagesRequest> for EmbeddingActor {
     type Result = Vec<Vec<f32>>;
     fn handle(&mut self, msg: EmbeddingMessagesRequest, ctx: &mut Self::Context) -> Self::Result {
-        debug!("{:?}", msg);
         let res = self.model.process(msg);
         debug!("res_len={:?}", res.len());
         res

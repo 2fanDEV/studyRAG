@@ -4,8 +4,8 @@ use anyhow::Result;
 use qdrant_client::{
     config::QdrantConfig,
     qdrant::{
-        vectors_config_diff::Config, CreateCollection, CreateCollectionBuilder, Distance,
-        VectorParams, VectorParamsBuilder, VectorsConfigBuilder,
+        vectors_config_diff::Config, CollectionExistsRequest, CreateCollection,
+        CreateCollectionBuilder, Distance, VectorParams, VectorParamsBuilder, VectorsConfigBuilder,
     },
     Qdrant,
 };
@@ -34,18 +34,16 @@ impl MQdrantClient {
     }
 
     pub async fn create_default_collection(&mut self, collection_name: String) -> Result<()> {
-               let vector_size = 768;
-
-             let vec_params = VectorParamsBuilder::new(vector_size, Distance::Cosine).build();
-               let vectors_config = VectorsConfigBuilder::default()
-               .add_vector_params(vec_params)
-             .clone();
+        let vector_size = 768;
+        let vec_params = VectorParamsBuilder::new(vector_size, Distance::Cosine).build();
+        let vectors_config = VectorsConfigBuilder::default()
+            .add_vector_params(vec_params)
+            .clone();
 
         match self
             .qdrant
             .create_collection(
-                CreateCollectionBuilder::new(&collection_name)
-                    .vectors_config(vectors_config)
+                CreateCollectionBuilder::new(&collection_name).vectors_config(vectors_config),
             )
             .await
         {
@@ -54,5 +52,23 @@ impl MQdrantClient {
         };
         self.all_collections.push(collection_name);
         Ok(())
+    }
+
+    pub async fn init_qdrant_collection(&mut self, collection_name: &str) -> Result<()> {
+        match self
+            .collection_exists(CollectionExistsRequest {
+                collection_name: collection_name.to_string(),
+            })
+            .await
+            .unwrap()
+        {
+            true => Ok(()),
+            false => {
+                self.create_default_collection(collection_name.to_string())
+                    .await
+                    .unwrap();
+                Ok(())
+            }
+        }
     }
 }

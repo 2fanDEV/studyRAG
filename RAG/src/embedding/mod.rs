@@ -4,8 +4,8 @@ use actix::Message;
 use rust_bert::pipelines::keywords_extraction::Keyword;
 
 
-pub mod bert_actors;
 pub mod processer;
+pub mod embedding_actors;
 
 pub trait ResultMarker {}
 
@@ -14,7 +14,7 @@ pub struct BertRequest<ResType>
 where
     ResType: ResultMarker,
 {
-    pub text: Vec<BertMessage>,
+    pub text: EmbeddingMessage,
     pub _data: PhantomData<ResType>,
 }
 
@@ -32,18 +32,18 @@ pub type EmbeddingMessagesRequest = BertRequest<Vec<Vec<f32>>>;
 pub type ExtractionMessageRequest = BertRequest<Vec<Vec<Keyword>>>;
 
 #[derive(Debug)]
-pub struct BertMessage {
-    pub text: String,
+pub struct EmbeddingMessage {
+    pub text: Vec<String>,
 }
 
-impl AsRef<str> for BertMessage {
-    fn as_ref(&self) -> &str {
+impl AsRef<Vec<String>> for EmbeddingMessage {
+    fn as_ref(&self) -> &Vec<String> {
         &self.text
     }
 }
 
 pub trait EmbeddingModel {
-    fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>>;
+    async fn process(&self, msg: EmbeddingMessagesRequest) -> Vec<Vec<f32>>;
 }
 
 pub trait ExtractionModel {

@@ -13,8 +13,8 @@ impl Deref for Id {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Count {
-    pub count: u64
+    pub count: u64,
 }
 

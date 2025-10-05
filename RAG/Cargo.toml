@@ -32,4 +32,5 @@ tokenizers = { version = "0.22.1", features=["http"]}
 text-splitter = { version = "0.28.0", features=["tokenizers"] }
 reqwest = { version = "0.12.23", features=["json"]}
 lopdf = "0.38.0"
+embed_anything = "0.6.4"
 

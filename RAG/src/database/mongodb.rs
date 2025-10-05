@@ -1,11 +1,9 @@
-use std::{
-    io::Result,
-    ops::Deref,
-};
+use std::{io::Result, ops::Deref};
 
+use bson::Document;
 use mongodb::{
     options::{ClientOptions, Credential, ServerAddress},
-    Client,
+    Client, Collection,
 };
 
 pub struct MongoClient {
@@ -42,5 +40,25 @@ impl MongoClient {
             .build();
         let client = Client::with_options(client_options).unwrap();
         Ok(Self { client })
+    }
+}
+
+pub trait UpsertCollection<T> {
+    async fn upsert_one(&self, query: Document, upsert_doc: Document) -> Result<()>;
+    async fn upsert_many(&self, query: Document, upsert_docs: &[T]) -> Result<()>;
+}
+
+
+// TODO 
+impl<T: Sync + Send> UpsertCollection<T> for Collection<T> {
+    async fn upsert_one(&self, query: Document, upsert_doc: Document) -> Result<()> {
+        match self.find(query).await {
+            Ok(res) => Ok(()),
+            Err(err) => Ok(()),
+        }
+    }
+
+    async fn upsert_many(&self, query: Document, upsert_docs: &[T]) -> Result<()> {
+        todo!()
     }
 }
