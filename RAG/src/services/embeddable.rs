@@ -42,7 +42,6 @@ pub struct EmbeddableService {
     dense_embedding_actor: Addr<EmbeddingActor>,
     sparse_embedding_actor: SparseTextEmbeddingModel,
     media_collection: Collection<Media>,
-    keywords_collection: Collection<Keyword>,
 }
 
 impl EmbeddableService {
@@ -58,7 +57,6 @@ impl EmbeddableService {
         Self {
             qdrant,
             media_collection: mongo_client.database("RAG").collection("media"),
-            keywords_collection: mongo_client.database("RAG").collection("vocabulary"),
             dense_embedding_actor,
             sparse_embedding_actor,
             text_processor: TextProcessor::new(chunk_size).unwrap(),
@@ -114,6 +112,7 @@ impl EmbeddableService {
             .await
             .unwrap();
 
+        debug!("{:?}", point_embeddings);
         let res = match mut_qdrant
             .upsert_points(UpsertPointsBuilder::new(
                 DOCUMENT_EMBEDDINGS,
@@ -122,13 +121,16 @@ impl EmbeddableService {
             .await
         {
             Ok(res) => HttpResponse::Ok().json(res.time.to_string()),
-            Err(err) => HttpResponse::InternalServerError().json(err.to_string()),
+            Err(err) => {
+                debug!("{:?}", err);
+                HttpResponse::InternalServerError().json(err.to_string())
+            }
         };
         Ok(res)
     }
 
     pub async fn execute_query(&self, query: QueryRequest) -> HttpResponse {
-        let query_embeddings = match self
+        /*        let query_embeddings = match self
             .create_embedded_points::<QueryPoints>(query.text, |embedding, keywords| {
                 QueryPointsBuilder::new(DOCUMENT_EMBEDDINGS)
                     .with_payload(true)
@@ -151,9 +153,10 @@ impl EmbeddableService {
                 .collect::<Vec<_>>()
         } else {
             vec![]
-        };
+        }; */
 
-        HttpResponse::Ok().json(query)
+        //HttpResponse::Ok().json(query)
+        HttpResponse::Ok().finish()
     }
 
     async fn create_embedded_points<T>(
@@ -179,7 +182,9 @@ impl EmbeddableService {
         let sparse_embedding = self
             .sparse_embedding_actor
             .process(BertRequest {
-                text: EmbeddingMessage { text: chunked_text },
+                text: EmbeddingMessage {
+                    text: chunked_text.clone(),
+                },
                 _data: PhantomData,
             })
             .await
@@ -198,7 +203,7 @@ impl EmbeddableService {
             .zip(chunked_text)
             .into_iter()
             .for_each(|((dense_emb, sparse_emb), text)| {
-                create_point(dense_emb, sparse_emb, text);
+                point_embeddings.push(create_point(dense_emb, sparse_emb, text));
             });
 
         let time_elapsed = start.elapsed().unwrap();
@@ -207,6 +212,6 @@ impl EmbeddableService {
             time_elapsed.as_secs_f64()
         );
 
-        Ok((point_embeddings, vec![]))
+        Ok(point_embeddings)
     }
 }

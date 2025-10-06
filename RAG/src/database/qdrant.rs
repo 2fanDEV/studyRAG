@@ -39,7 +39,6 @@ impl MQdrantClient {
         let vectors_config = VectorsConfigBuilder::default()
             .add_vector_params(vec_params)
             .clone();
-
         match self
             .qdrant
             .create_collection(
