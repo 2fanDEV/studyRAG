@@ -13,7 +13,7 @@ use mongodb::Collection;
 use qdrant_client::{
     qdrant::{
         DenseVector, NamedVectors, PointId, PointStruct, QueryPoints, QueryPointsBuilder,
-        SparseVector, UpsertPointsBuilder, Vector,
+        SearchPoints, SparseVector, UpsertPointsBuilder, Vector,
     },
     Payload,
 };
@@ -130,13 +130,11 @@ impl EmbeddableService {
     }
 
     pub async fn execute_query(&self, query: QueryRequest) -> HttpResponse {
-        /*        let query_embeddings = match self
-            .create_embedded_points::<QueryPoints>(query.text, |embedding, keywords| {
-                QueryPointsBuilder::new(DOCUMENT_EMBEDDINGS)
-                    .with_payload(true)
-                    .query(embedding)
-                    .build()
-            })
+        let query_embeddings = match self
+            .create_embedded_points::<(Vec<f32>, (Vec<u32>, Vec<f32>))>(
+                query.text,
+                |dense, sparse, text_chunk| (dense, sparse),
+            )
             .await
         {
             Ok(points) => points,
@@ -144,19 +142,28 @@ impl EmbeddableService {
         };
 
         // right now its only a single query from the frontend in form of a prompt so we take first element
-        let query = if let Some(points) = query_embeddings.get(0).take() {
-            let query = self.qdrant.borrow().query(points.clone()).await.unwrap();
-            query
-                .result
-                .iter()
-                .map(|point| ((point.payload.clone(), point.score)))
-                .collect::<Vec<_>>()
+        let scored_points = if let Some(points) = query_embeddings.get(0).take() {
+            let dense_points = points.0.clone();
+            let sparse_indices = points.1 .0.clone();
+            let sparse_points = points.1 .1.clone();
+            self.qdrant
+                .borrow()
+                .hybrid_search(
+                    DOCUMENT_EMBEDDINGS,
+                    dense_points,
+                    sparse_points,
+                    sparse_indices,
+                )
+                .await
+                .iter().map(|rs| {
+                    (rs.score, rs.payload.clone())
+                })
+                .collect::<_>()
         } else {
             vec![]
-        }; */
+        };
 
-        //HttpResponse::Ok().json(query)
-        HttpResponse::Ok().finish()
+        HttpResponse::Ok().json(scored_points)
     }
 
     async fn create_embedded_points<T>(
