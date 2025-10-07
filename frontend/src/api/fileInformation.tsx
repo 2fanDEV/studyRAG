@@ -4,33 +4,27 @@ import type { FileInformation } from "../types/app";
 import type { RAGDraggableElement } from "../components/DraggableElement";
 import invariant from "tiny-invariant";
 
-export default function useUploadFileInformation(
+export default function useFileUtilities(
   setUploadProgress: () => void
 ) {
-  const { sendChunkedFileRequest, ...misc } = useAxiosChunked<void>(
-    {
-      url: import.meta.env.VITE_API + "/file_information/upload",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+  const { sendChunkedFileRequest: uploadFileRequest, ...uploadFileMisc } =
+    useAxiosChunked<void>(
+      {
+        url: import.meta.env.VITE_API + "/file_information/upload",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        len: 0,
       },
-      len: 0,
-    },
-    setUploadProgress
-  );
+      setUploadProgress
+    );
 
-  const uploadFile= useCallback(
-    (file: File, id?: string) => {
-      invariant(id, "At this point, id must not be undefined")
-      return sendChunkedFileRequest(id, { file: file });
-    },
-    [sendChunkedFileRequest]
-  );
-  return { uploadFile, ...misc };
-}
-export function useSaveFileInformation() {
-  const { sendRequest, ...misc } = useAxios<FileInformation, void>({
+  const { sendRequest: saveFileInfoRequest, ...fileInfoMisc } = useAxios<
+    FileInformation,
+    void
+  >({
     url: import.meta.env.VITE_API + "/file_information/save",
     method: "POST",
     headers: {
@@ -39,38 +33,51 @@ export function useSaveFileInformation() {
     },
   });
 
+
   const saveFileInformation = useCallback(
     (draggableElement: RAGDraggableElement) => {
-      invariant(draggableElement.id, "At this point the ID must've been set!")
-      return sendRequest({
+      invariant(draggableElement.id, "At this point the ID must've been set!");
+      return saveFileInfoRequest({
         data: {
           id: draggableElement.id,
           len: draggableElement.len,
           name: draggableElement.name,
-          ty: draggableElement.ty
+          ty: draggableElement.ty,
         },
       });
     },
-    [sendRequest]
+    [saveFileInfoRequest]
   );
-  return { saveFileInformation, ...misc };
+
+  const uploadFile = useCallback(
+    (file: File, id?: string) => {
+      invariant(id, "At this point, id must not be undefined");
+      return uploadFileRequest(id, { file: file });
+    },
+    [uploadFileRequest]
+  );
+
+  return { uploadFile, saveFileInformation};
 }
 
-export function useFetchFileInformations() {
-  const { sendRequest, ...misc } = useAxios<string[], FileInformation[]>({
-    url: import.meta.env.VITE_API + "/file_information/get_by_ids",
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  });
+
+export function useFileRetrieval() {
+  const { sendRequest: fetchFileInformationsRequest, ...misc } =
+    useAxios<string[], FileInformation[]>({
+      url: import.meta.env.VITE_API + "/file_information/get_by_ids",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
 
   const fetchFileInformations = useCallback(
     (ids: string[]) => {
-      return sendRequest({ params: { ids: ids } });
+      return fetchFileInformationsRequest({ params: { ids: ids } });
     },
-    [sendRequest]
+    [fetchFileInformationsRequest]
   );
-  return { fetchFileInformations, ...misc };
+
+  return { fetchFileInformations, ...misc }
 }

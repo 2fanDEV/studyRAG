@@ -18,11 +18,15 @@ export default function useAxios<RQD, RSD>(props: AxiosParameter<RQD>) {
       try {
         const defaultHeaders = {
           "Content-Type": "application/json",
-          Accept: "application/json",
+           Accept: "application/json",
         };
+
+        const headers = {...defaultHeaders,...props.headers};
+        
+        console.log(headers);
         const response = await axios({
           url: options?.url || props.url,
-          headers: options?.headers || defaultHeaders,
+          headers: options?.headers || headers,
           method: options?.method || props.method,
           data: options?.data || props.data,
           params: options?.params || props.params,

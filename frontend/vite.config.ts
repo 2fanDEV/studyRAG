@@ -9,5 +9,15 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  }
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://models.github.ai',
+        changeOrigin: true, // This is crucial for hostname resolution
+        secure: true,       
+        rewrite: (path) => path.replace(/^\/api/, ''), 
+      },
+    },
+  },
 })

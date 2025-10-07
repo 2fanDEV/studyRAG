@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import { Github } from "lucide-react";
 import useTokenExchange from "@/api/auth";
 
 export default function LoginButton() {
-  console.log(import.meta.env);
+  const [loggedIn, setLoggedIn] = useState(false);
   const { exchangeToken } = useTokenExchange();
 
   useEffect(() => {
@@ -24,6 +24,10 @@ export default function LoginButton() {
       const code = searchParams.get("code");
       if (code) {
         let token = await exchangeToken(code);
+        if (token) {
+          window.cookieStore.set("ght", token.access_token);
+          setLoggedIn(true);
+        }
       }
       window.history.replaceState("", document.title, window.location.origin);
     };
