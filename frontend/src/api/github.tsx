@@ -1,18 +1,19 @@
 import useAxios from "@/hooks/useAxios";
 import type { Model } from "@/types/models.d";
 
-export default function useGitHubRequests() {
+export default function useProviderRequests(url: string) {
   const { sendRequest: getModelsRequest } = useAxios<string, Model[]>({
-    url: "/api/catalog/models",
+    url: "url",
     method: "GET",
     headers: {
-        "Content-Type": "application/json",
-        Accept: "application/vnd.github+json",
-    }
+      "Content-Type": "application/json",
+      //       Accept: "application/vnd.github+json",
+      Accept: "application/json",
+    },
   });
 
-  const getModelsReq = () => {
-    return getModelsRequest();
+  const getModelsReq = (url: string) => {
+    return getModelsRequest({ url });
   };
 
   return { getModelsReq };

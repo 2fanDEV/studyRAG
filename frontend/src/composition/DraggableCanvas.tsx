@@ -47,7 +47,7 @@ export function DraggableCanvas() {
 
   return (
     <div
-      className="w-full h-screen bg-[#01131ae]
+      className="w-full h-screen bg-[#01131a]
        [background-image:radial-gradient(white_0.75px,transparent_0.5px)] 
     [background-size:2.5rem_2.5rem] opacity-100 z-0
     "

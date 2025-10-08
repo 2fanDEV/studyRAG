@@ -7,12 +7,12 @@ function App() {
   const [model, setModel] = useState<Model | undefined>(undefined);
   const [models, setModels] = useState<Model[]>([]);
 
-
-  return <div>
-    <Menu/>
-    <DraggableCanvas/>
-  </div>
-
+  return (
+    <div>
+      <Menu />
+      <DraggableCanvas />
+    </div>
+  );
 }
 
 export default App;

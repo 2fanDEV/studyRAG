@@ -53,7 +53,7 @@ impl MQdrantClient {
     }
 
     pub async fn create_named_vectors_collection(&mut self, collection_name: String) -> Result<()> {
-        let dense_params = VectorParamsBuilder::new(768, Distance::Cosine).build();
+        let dense_params = VectorParamsBuilder::new(768, Distance::Dot).build();
         let sparse_params = SparseVectorParams::default();
         let mut vectors_config = VectorsConfigBuilder::default();
         vectors_config.add_named_vector_params("dense", dense_params);
@@ -91,34 +91,6 @@ impl MQdrantClient {
                     .await
                     .unwrap();
                 Ok(())
-            }
-        }
-    }
-
-    pub async fn search_query(
-        &self,
-        collection_name: &str,
-        embeddings: Vec<f32>,
-        indices: Option<Vec<u32>>,
-    ) -> Result<SearchResponse, QdrantError> {
-        match indices {
-            Some(indices) => {
-                self.search_points(
-                    SearchPointsBuilder::new(collection_name, embeddings, 10)
-                        .sparse_indices(indices)
-                        .vector_name("sparse")
-                        .with_payload(true)
-                        .build(),
-                )
-                .await
-            }
-            None => {
-                self.search_points(
-                    SearchPointsBuilder::new(collection_name, embeddings, 10)
-                        .vector_name("dense")
-                        .with_payload(true),
-                )
-                .await
             }
         }
     }
