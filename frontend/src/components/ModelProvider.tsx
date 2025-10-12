@@ -53,17 +53,14 @@ export default function ModelProvider(providerProps: ModelProviderProps) {
     const selectedProvider = providers.find((prov) => prov.name === provider);
     if (selectedProvider) {
       setProvider(selectedProvider);
-      console.log(selectedProvider);
     }
   };
 
   useEffect(() => {
     const getModelsOfProvider = async (provider: Provider) => {
-      let provider_models = await getModels(provider.models_url) || [];
-      console.log(provider_models);
+      let provider_models = (await getModels(provider.models_url)) || [];
       providerProps.availableModels(provider_models);
     };
-
     getModelsOfProvider(provider);
   }, [provider]);
 
