@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useSelectedModel } from "@/hooks/context/useSelectedModel";
+import type { Model } from "@/types/models.d";
 
 export interface QueryProps {
   prompt: string;
@@ -35,7 +36,7 @@ export default function QueryInput(props: QueryProps) {
       props.setPrompt("");
     }
   }, [submitted]);
-
+  
   const inputCallback = async (prompt: string) => {
     props.setPrompt(prompt);
   };
@@ -56,7 +57,8 @@ export default function QueryInput(props: QueryProps) {
         <SelectValue defaultChecked={true} />
       </SelectTrigger>
       <SelectContent>
-        {modelsCtx.models.map((model, idx) => {
+        {modelsCtx.models.map((model, idx) => 
+        {
           return (
             <SelectItem value={idx.toString()} key={model.name}>
               {model.name}

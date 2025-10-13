@@ -1,6 +1,8 @@
-export type Model = GitHubModelSchema | OllamaModelDetails
+export type Models = GitHubModel[] | OllamaModels
+export type Model = GitHubModel | OllamaModel
 
-export interface GitHubModelSchema {
+
+export interface GitHubModel {
   id: string;
   name: string;
   publisher: string;
@@ -19,6 +21,10 @@ export interface GitHubModelSchema {
 interface Limits {
   max_input_tokens: number;
   max_output_tokens: number;
+}
+
+export interface OllamaModels {
+  models: OllamaModel[]
 }
 
 export interface OllamaModel {

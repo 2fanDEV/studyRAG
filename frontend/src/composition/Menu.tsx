@@ -4,7 +4,7 @@ import ShortcutButton from "@/components/ShortCut";
 import UploadButton from "@/components/UploadButton";
 import { useModels } from "@/hooks/context/useModels";
 import { ShortcutContext } from "@/hooks/context/useShortcut";
-import type { Model } from "@/types/models.d";
+import type { Model, Models } from "@/types/models.d";
 import { useEffect, useState } from "react";
 
 export interface MenuProps {
@@ -17,15 +17,15 @@ export function Menu(props: MenuProps) {
 
   useEffect(() => {
        props.setSystemPromptDialog(isActive);
-  }, [isActive])
+  }, [isActive, modelsCtx?.models])
 
   return (
     <div className="grid w-full grid-cols-2 absolute">
       <div className="">
         <ModelProvider
-          availableModels={(model: Model[]) => {
-            console.log(model);
-            modelsCtx?.setModels(model);
+          availableModels={(models: Models) => {
+            console.log(modelsCtx);
+            modelsCtx?.setModels(models);
           }}
         />
       </div>

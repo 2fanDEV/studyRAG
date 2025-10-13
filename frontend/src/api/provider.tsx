@@ -1,8 +1,8 @@
 import useAxios from "@/hooks/useAxios";
-import type { Model } from "@/types/models.d";
+import type { Models } from "@/types/models.d";
 
 export default function useProviderRequests(url: string) {
-  const { sendRequest: getModelsRequest } = useAxios<string, Model[]>({
+  const { sendRequest: getModelsRequest } = useAxios<string, Models>({
     url: "url",
     method: "GET",
     headers: {

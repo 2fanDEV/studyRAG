@@ -1,4 +1,3 @@
-import type { Model } from "@/types/models.d";
 import {
   Select,
   SelectContent,
@@ -10,6 +9,7 @@ import { useEffect, useState } from "react";
 import useProviderRequests from "@/api/provider";
 import { defaultProviders, type Provider } from "@/types/provider";
 import { useProvider } from "@/hooks/context/useProvider";
+import type { Model, Models } from "@/types/models.d";
 
 export interface ModelProviderProps {
   availableModels: (models: Model[]) => void;
@@ -30,10 +30,15 @@ export default function ModelProvider(providerProps: ModelProviderProps) {
     }
   };
 
+  const isOllama= (models: Models) => {
+      return "models" in models;
+  }
+
   useEffect(() => {
     const getModelsOfProvider = async (provider: Provider) => {
       let provider_models = (await getModels(provider.models_url)) || [];
-      providerProps.availableModels(provider_models);
+    
+        providerProps.availableModels(isOllama(provider_models) ? provider_models.models : provider_models  );
     };
     getModelsOfProvider(provider);
   }, [provider]);
