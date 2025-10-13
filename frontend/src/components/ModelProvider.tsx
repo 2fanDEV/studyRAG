@@ -1,4 +1,3 @@
-import useGitHubRequests from "@/api/github";
 import type { Model } from "@/types/models.d";
 import {
   Select,
@@ -8,51 +7,26 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useEffect, useState } from "react";
-import useProviderRequests from "@/api/github";
-
-export interface Provider {
-  id: string;
-  name: string;
-  models: Model[];
-  models_url: string;
-}
+import useProviderRequests from "@/api/provider";
+import { defaultProviders, type Provider } from "@/types/provider";
+import { useProvider } from "@/hooks/context/useProvider";
 
 export interface ModelProviderProps {
   availableModels: (models: Model[]) => void;
 }
 
-const defaultProviders: Provider[] = [
-  {
-    id: "GITHUB",
-    name: "GitHub",
-    models: [],
-    models_url: "/api/catalog/models",
-  },
-  {
-    id: "OLLAMA",
-    name: "Ollama",
-    models: [],
-    models_url: "",
-  },
-];
-
 export default function ModelProvider(providerProps: ModelProviderProps) {
   const { getModelsReq: getModels } = useProviderRequests(
     defaultProviders[0].models_url
   );
-  const [provider, setProvider] = useState<Provider>(defaultProviders[0]);
+  const providerCtx = useProvider();
+  const provider = providerCtx.provider;
   const [providers, setProviders] = useState<Provider[]>(defaultProviders);
-
-  const newProvider = (provider: Provider) => {
-    setProviders((prevState) => {
-      return [...prevState, provider];
-    });
-  };
 
   const selectProvider = (provider: string) => {
     const selectedProvider = providers.find((prov) => prov.name === provider);
     if (selectedProvider) {
-      setProvider(selectedProvider);
+      providerCtx.setProvider(selectedProvider);
     }
   };
 

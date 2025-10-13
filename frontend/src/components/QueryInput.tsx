@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AutoExpandingTextArea from "./AutoExpandingTextArea";
-import { ShortcutContext, useQueryModalShortcut } from "@/hooks/useShortcut";
+import { ShortcutContext, useQueryContextShortcut } from "@/hooks/context/useShortcut";
 import ShortcutButton from "./ShortCut";
-import { useModels } from "@/hooks/useModels";
+import { useModels } from "@/hooks/context/useModels";
 import { Spinner } from "./ui/spinner";
 import {
   Select,
@@ -11,39 +11,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useSelectedModel } from "@/hooks/useSelectedModel";
+import { useSelectedModel } from "@/hooks/context/useSelectedModel";
 
 export interface QueryProps {
-  prompt: string,
+  prompt: string;
   setPrompt: (prompt: string) => void;
   submit: (b: boolean) => void;
 }
 
 export default function QueryInput(props: QueryProps) {
-  const queryContext = useQueryModalShortcut();
+  const firstIndexForSelect = "0";
+  const queryContext = useQueryContextShortcut();
   const modelsCtx = useModels();
   const modelCtx = useSelectedModel();
   const [submitted, setSubmitted] = useState(false);
 
-  if (submitted) {
-    queryContext?.setIsActivated(false);
-    props.submit(true);
-    props.setPrompt("");
-  }
+  useEffect(() => {
+    if (submitted) {
+      if (queryContext) {
+        queryContext.setIsActivated(false);
+      }
+      props.submit(true);
+      props.setPrompt("");
+    }
+  }, [submitted]);
 
   const inputCallback = async (prompt: string) => {
-    props.setPrompt(prompt)
+    props.setPrompt(prompt);
   };
 
   const valueChangeHandle = (value: string) => {
-      let index = Number.parseInt(value);
-      if(modelsCtx && modelCtx) {
-        modelCtx.setModel(modelsCtx.models[index]);
-      }
-  }
- 
- let loadedModels = modelsCtx ? (
-      <Select onValueChange={valueChangeHandle}defaultValue={modelsCtx.models[0].name}>
+    let index = Number.parseInt(value);
+    if (modelsCtx && modelCtx) {
+      modelCtx.setModel(modelsCtx.models[index]);
+    }
+  };
+
+  let loadedModels = modelsCtx ? (
+    <Select
+      onValueChange={valueChangeHandle}
+      defaultValue={firstIndexForSelect}
+    >
       <SelectTrigger className="w-auto text-md">
         <SelectValue defaultChecked={true} />
       </SelectTrigger>
@@ -68,10 +76,25 @@ export default function QueryInput(props: QueryProps) {
       <div className="w-full h-full absolute flex justify-center ">
         <div className="flex flex-col justify-center text-white bg-transparent w-md h-full">
           <div className="self-center">
+            <div
+              className="
+              text-white
+              rounded-2xl 
+              p-4
+              w-xl
+              drop-shadow-white
+              drop-shadow-xs
+              mr-5
+              animate-fadeIn0_20
+              border-white bg-[linear-gradient(to_top,#00808077,transparent)]
+              backdrop-blur-[1px]"
+            >
               <AutoExpandingTextArea
-              text={props.prompt}
-              inputCallback={inputCallback}
-            ></AutoExpandingTextArea>
+                text={props.prompt}
+                placeholder="Ask about something"
+                inputCallback={inputCallback}
+              ></AutoExpandingTextArea>
+            </div>
           </div>
           <div className="grid grid-cols-2 w-full opacity-0 animate-fadeIn0_20 mt-3">
             <div className="justify-self-start -ml-4"> {loadedModels} </div>

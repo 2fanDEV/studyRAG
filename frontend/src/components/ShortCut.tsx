@@ -1,7 +1,7 @@
 import { LucideCommand, LucidePlus, LucideSend } from "lucide-react";
 import { useCallback, useContext, useEffect } from "react";
 import { Button } from "./ui/button";
-import { useQueryModalShortcut } from "@/hooks/useShortcut";
+import { useQueryContextShortcut } from "@/hooks/context/useShortcut";
 
 export interface ShortcutProps {
   shortcutKey: string;
@@ -10,13 +10,12 @@ export interface ShortcutProps {
 }
 
 const targetTo: Record<string, React.ReactElement> = {
-  Meta: <LucideCommand />,
-  K: <h1> K </h1>,
-  Enter: <LucideSend />,
+  Meta: <LucideCommand/>,
+  Enter: <LucideSend/>,
 };
 
 export default function ShortcutButton(props: ShortcutProps) {
-  const ctx = useQueryModalShortcut();
+  const ctx = useQueryContextShortcut();
   let shortcutKey = props.shortcutKey.toLowerCase();
   let cancelKey = props.shortcutCancelKey.toLowerCase();
 
@@ -47,10 +46,10 @@ export default function ShortcutButton(props: ShortcutProps) {
   }, [handleKeyPress]);
 
   return (
-    <Button className="flex mt-1 mr-1 w-22 h-7 bg-black-700 text-white hover:bg-teal-800 border-teal-300 border-1 rounded-4xl gap-1">
+    <Button className="flex mt-2 mr-1 w-18 h-6 bg-black-700 text-white hover:bg-teal-800 border-teal-300 border-1 rounded-4xl gap-1.5 ">
       {props.metaKeyRequired ? targetTo["Meta"] : ""}
-      {props.metaKeyRequired ? <LucidePlus /> : ""}
-      {targetTo[props.shortcutKey]}
+      {props.metaKeyRequired ? <LucidePlus/> : ""}
+      {targetTo[props.shortcutKey] ? targetTo[props.shortcutKey]: <h1> {props.shortcutKey}</h1>}
     </Button>
   );
 }

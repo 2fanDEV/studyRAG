@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 
 export interface TextAreaProps {
   text: string
+  placeholder: string,
   inputCallback: (input: string) => void;
 }
 
@@ -35,26 +36,13 @@ export default function AutoExpandingTextArea(props: TextAreaProps) {
   };
 
   return (
-    <div
-      className="text-white
-    rounded-2xl 
-    p-4
-    w-xl
-    drop-shadow-white
-    drop-shadow-xs
-    mr-5
-    animate-fadeIn0_20
-    border-white bg-[linear-gradient(to_top,#00808077,transparent)]
-    backdrop-blur-[1px]"
-    >
       <textarea
         ref={textAreaRef}
         onChange={handleChange}
         defaultValue={props.text}
         autoFocus
-        className="focus:outline-none text-xl w-full resize-none"
-        placeholder="Place your query here"
+        className="focus:outline-none w-full resize-none"
+        placeholder={props.placeholder}
       />
-    </div>
   );
 }

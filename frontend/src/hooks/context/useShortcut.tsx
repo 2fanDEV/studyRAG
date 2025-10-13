@@ -9,4 +9,4 @@ export const ShortcutContext = createContext<ShortCutContextType | undefined>(
   undefined
 );
 
-export const useQueryModalShortcut = () => useContext(ShortcutContext);
+export const useQueryContextShortcut = () => useContext(ShortcutContext);
